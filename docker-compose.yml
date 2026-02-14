@@ -17,8 +17,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-cronopus}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cronopus}"]
       interval: 10s
@@ -41,8 +39,6 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       PROFILE_JSON_PATH: /docs/profile.json
       TEMPLATE_TEX_PATH: /docs/cv_master_jinja.tex
-    ports:
-      - "8000:8000"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\""]
       interval: 10s
@@ -65,8 +61,6 @@ services:
     restart: unless-stopped
     networks:
       - cronopus_net
-    ports:
-      - "3000:80"
     healthcheck:
       test: ["CMD-SHELL", "test -f /usr/share/nginx/html/index.html"]
       interval: 10s
