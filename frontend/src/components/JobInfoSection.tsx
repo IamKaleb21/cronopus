@@ -1,7 +1,7 @@
 import type { Job } from '@/types'
 import { Badge } from '@/components/ui/badge'
 import { MapPin, Building2, Wallet } from 'lucide-react'
-import { parseJobDescription } from '@/lib/parseJobDescription'
+import { parseJobDescription, type ParsedSection } from '@/lib/parseJobDescription'
 
 interface JobInfoSectionProps {
     job: Job
@@ -37,7 +37,7 @@ export function JobInfoSection({ job }: JobInfoSectionProps) {
             </div>
             {useParsed && parsed ? (
                 <div className="space-y-3">
-                    {parsed.sections.map((section, i) => (
+                    {parsed.sections.map((section: ParsedSection, i: number) => (
                         <div key={i}>
                             {section.title && (
                                 <h4 className="font-semibold text-sm text-foreground mb-1">
