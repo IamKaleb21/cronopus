@@ -1,0 +1,82 @@
+## CronOpus Scraper - CompuTrabajo
+# -----------------------------------------------------------------------------
+# Stage 1: builder (install Python deps, Playwright, Chromium + build deps)
+# -----------------------------------------------------------------------------
+FROM python:3.12-slim-bookworm AS builder
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       curl \
+       ca-certificates \
+       gcc \
+       libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+WORKDIR /app
+
+COPY scrapers/requirements-computrabajo.txt scrapers/requirements-computrabajo.txt
+
+RUN uv venv /app/.venv \
+    && uv pip install --python /app/.venv/bin/python -r scrapers/requirements-computrabajo.txt \
+    && /app/.venv/bin/python -m playwright install --with-deps chromium
+
+# -----------------------------------------------------------------------------
+# Stage 2: final (slim runtime: Chromium deps + libpq5, no gcc/libpq-dev)
+# -----------------------------------------------------------------------------
+FROM python:3.12-slim-bookworm
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
+
+# Chromium runtime deps (no gcc, no libpq-dev). libpq5 for psycopg2 at runtime.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       ca-certificates \
+       libpq5 \
+       libnss3 \
+       libnspr4 \
+       libatk1.0-0 \
+       libatk-bridge2.0-0 \
+       libcups2 \
+       libdrm2 \
+       libxkbcommon0 \
+       libx11-6 \
+       libxcomposite1 \
+       libxdamage1 \
+       libxext6 \
+       libxfixes3 \
+       libxrandr2 \
+       libgbm1 \
+       libpango-1.0-0 \
+       libcairo2 \
+       libasound2 \
+       libatspi2.0-0 \
+       libxshmfence1 \
+       libdbus-1-3 \
+       libxcb1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+WORKDIR /app
+
+# From builder: venv and Playwright browsers
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /root/.cache/ms-playwright /root/.cache/ms-playwright
+
+# From build context: app code (required for COPY backend/ per test_runtime_deps_7_3)
+COPY pyproject.toml uv.lock ./
+COPY backend/ backend/
+COPY scrapers/ scrapers/
+COPY scripts/run_computrabajo.py scripts/run_computrabajo.py
+
+ENV PYTHONPATH=/app \
+    PATH="/app/.venv/bin:$PATH"
+
+CMD ["uv", "run", "scripts/run_computrabajo.py"]

@@ -1,0 +1,8 @@
+# Minimal deps for Practicas.pe scraper (httpx, BeautifulSoup, DB, config).
+# Used by scrapers/Dockerfile.practicas to avoid installing monorepo deps.
+httpx>=0.28.1
+beautifulsoup4>=4.14.3
+psycopg2-binary>=2.9.11
+pydantic-settings>=2.12.0
+sqlmodel>=0.0.32
+python-dotenv>=1.2.1

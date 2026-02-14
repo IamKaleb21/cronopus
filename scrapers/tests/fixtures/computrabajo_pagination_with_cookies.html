@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CompuTrabajo - Paginación con Cookies</title>
+</head>
+<body>
+    <!-- Banner de cookies con estructura real del log -->
+    <div role="dialog" id="cookie-banner" 
+         aria-live="polite" 
+         aria-label="cookieconsent" 
+         aria-describedby="cookieconsent:desc" 
+         class="cc-window cc-banner cc-type-info cc-theme-classic cc-bottom cc-color-override--1532327614">
+        <span class="cc-message" id="cookieconsent:desc">
+            Utilizamos cookies propias necesarias para el funcionamiento correcto y personalización del sitio web.
+        </span>
+        <div class="cc-compliance">
+            <button class="cc-btn">Acepto</button>
+        </div>
+    </div>
+
+    <!-- Contenido de ofertas -->
+    <div id="offersGridOfferContainer">
+        <article class="box_offer" data-id="12345">
+            <h2 class="fs18">
+                <a href="/oferta-de-trabajo/programador-java" class="js-o-link fc_base">Programador Java Senior</a>
+            </h2>
+            <p class="fs16 fc_base mt5">
+                <a href="/empresa/tech-solutions" class="t_ellipsis">Tech Solutions Peru</a>
+            </p>
+            <p class="fs13 fc_aux mt5">
+                <i class="icon icon-location"></i>
+                <span>Trujillo, La Libertad</span>
+            </p>
+        </article>
+    </div>
+
+    <!-- Paginación con botón Siguiente HABILITADO -->
+    <div class="pagination">
+        <span title="Siguiente" 
+              class="b_primary w48 buildLink cp" 
+              data-path="https://pe.computrabajo.com/trabajo-de-desarrollador-web-en-lima?pubdate=7&p=2">
+            Siguiente
+        </span>
+    </div>
+</body>
+</html>
