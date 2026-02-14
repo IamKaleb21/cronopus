@@ -1,0 +1,165 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@source "../index.html";
+@source "../src/**/*.{js,ts,jsx,tsx}";
+
+@theme {
+  --font-sans: 'Nunito', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-lavender-base: #8b5cf6;
+  --color-lavender-light: #c4b5fd;
+  --color-lavender-dark: #7c3aed;
+
+  /* Status Colors */
+  --color-status-new: #f472b6;
+  --color-status-saved: #a78bfa;
+  --color-status-generated: #6ee7b7;
+  --color-status-applied: #fdba74;
+  --color-status-expired: #9ca3af;
+  --color-status-discarded: #fca5a5;
+
+  /* Animations */
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@theme inline {
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+
+  --color-card: var(--bg-card);
+  --color-card-foreground: var(--text-primary);
+
+  --color-popover: var(--bg-secondary);
+  --color-popover-foreground: var(--text-primary);
+
+  --color-primary: var(--accent-primary);
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: var(--bg-tertiary);
+  --color-secondary-foreground: var(--text-secondary);
+
+  --color-muted: var(--bg-tertiary);
+  --color-muted-foreground: var(--text-muted);
+
+  --color-accent: var(--bg-card-hover);
+  --color-accent-foreground: var(--text-primary);
+
+  --color-destructive: var(--status-discarded);
+  --color-destructive-foreground: var(--bg-primary);
+
+  --color-border: var(--border-subtle);
+  --color-input: var(--bg-tertiary);
+  --color-ring: var(--accent-primary);
+
+  --color-sidebar: var(--bg-secondary);
+  --color-sidebar-foreground: var(--text-secondary);
+  --color-sidebar-primary: var(--accent-primary);
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: var(--bg-card-hover);
+  --color-sidebar-accent-foreground: var(--text-primary);
+  --color-sidebar-border: var(--border-subtle);
+  --color-sidebar-ring: var(--accent-glow);
+}
+
+:root {
+  /* Colors - Lavender Nights Dark Theme */
+  --bg-primary: #0d0a1a;
+  --bg-secondary: #1a1528;
+  --bg-tertiary: #251e38;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+
+  /* Accent Colors - Soft Purple */
+  --accent-primary: #8b5cf6;
+  --accent-primary-light: #c4b5fd;
+  --accent-secondary: #a78bfa;
+  --accent-glow: rgba(139, 92, 246, 0.3);
+
+  /* Status Colors - Soft Pastels */
+  --status-new: #f472b6;
+  --status-saved: #a78bfa;
+  --status-generated: #6ee7b7;
+  --status-applied: #fdba74;
+  --status-expired: #9ca3af;
+  --status-discarded: #fca5a5;
+
+  /* Text Colors - Warm */
+  --text-primary: #faf5ff;
+  --text-secondary: #b8b8d0;
+  --text-muted: #8888a8;
+
+  /* Borders - Neutral */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-light: rgba(255, 255, 255, 0.12);
+  --border-accent: rgba(139, 92, 246, 0.4);
+
+  /* Border Radius - Soft */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  /* Shadcn radius variable mapping */
+  --radius: var(--radius-lg);
+}
+
+.dark {
+  /* Mapped in :root and @theme inline */
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-color: var(--bg-primary);
+  }
+
+  /* Background Pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(196, 181, 253, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(244, 114, 182, 0.06) 0%, transparent 30%);
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
+@layer utilities {
+  .bg-accent-gradient {
+    background: linear-gradient(135deg, #8b5cf6 0%, #c4b5fd 50%, #f0abfc 100%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #8b5cf6 0%, #c4b5fd 50%, #f0abfc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .shadow-glow-primary {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+  }
+
+  .shadow-glow-card {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+}
