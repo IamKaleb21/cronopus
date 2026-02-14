@@ -37,6 +37,7 @@ services:
       MASTER_PASSWORD: ${MASTER_PASSWORD:-dev}
       AUTH_TOKEN: ${AUTH_TOKEN:-cronopus-secret-token}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS}
       PROFILE_JSON_PATH: /docs/profile.json
       TEMPLATE_TEX_PATH: /docs/cv_master_jinja.tex
     healthcheck:
@@ -57,6 +58,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
     container_name: cronopus-frontend
     restart: unless-stopped
     networks:
