@@ -1,0 +1,240 @@
+{
+  "id": "profile-main",
+  "full_name": "Aarón Kaleb Arteaga Rodríguez",
+  "title": "Ingeniero Informático y Desarrollador Full Stack",
+  "contact": {
+    "phone": "+51 903 289 563",
+    "email": "hionta16@gmail.com",
+    "location": "Trujillo, Perú",
+    "links": {
+      "linkedin": "https://linkedin.com/in/imkaleb21/",
+      "github": "https://github.com/IamKaleb21",
+      "website": "https://iamkaleb21.github.io"
+    }
+  },
+  "summary": "Ingeniero Informático y Desarrollador Full Stack. Especializado en la construcción de arquitecturas web escalables y sistemas de alto rendimiento utilizando stacks modernos (Python, React, Node.js) y tradicionales (PHP/Laravel), tambien en la administración de sistemas Linux y despliegue en infraestructura Cloud. Cuento con sólida experiencia en el diseño de bases de datos híbridas (SQL y MongoDB) y la implementación de pipelines de datos para analítica. Mi perfil combina la ingeniería de software con una fuerte capacidad para la Ciencia de Datos y la integración de modelos de IA, permitiéndome entregar soluciones que no solo funcionan técnicamente, sino que generan valor estratégico para el negocio.",
+  "skills": {
+    "languages": [
+      "Python",
+      "PHP",
+      "TypeScript",
+      "JavaScript",
+      "Java",
+      "Bash",
+      "HTML/CSS"
+    ],
+    "frontend": [
+      "React",
+      "Next.js",
+      "Astro",
+      "Tailwind CSS",
+      "Vite"
+    ],
+    "backend_db": [
+      "Laravel",
+      "Node.js",
+      "FastAPI",
+      "Supabase",
+      "MongoDB",
+      "SQLite",
+      "PostgreSQL",
+      "SQL Server",
+      "Redis"
+    ],
+    "mobile": [
+      "React Native",
+      "Expo"
+    ],
+    "data_ml": [
+      "Pandas",
+      "NumPy",
+      "Scikit-learn",
+      "OpenCV",
+      "Ollama"
+    ],
+    "infra_tools": [
+      "Docker",
+      "Git",
+      "Linux VPS",
+      "Nginx",
+      "CI/CD",
+      "Postman",
+      "Figma",
+      "Playwright"
+    ],
+    "libraries": [
+      "Shadcn/UI",
+      "TanStack Query",
+      "Zustand"
+    ],
+    "languages_spoken": [
+      {
+        "name": "Español",
+        "level": "Nativo"
+      },
+      {
+        "name": "Inglés",
+        "level": "B1",
+        "note": "Lectura Técnica y Documentación"
+      }
+    ]
+  },
+  "experience": [
+    {
+      "id": "exp-biofmat",
+      "role": "Full Stack Engineer",
+      "company": "BiofMat (Startup EdTech)",
+      "location": "Trujillo, Perú",
+      "from": "Ene. 2025",
+      "to": "Presente",
+      "bullets": [
+        "Arquitecté y desarrollé Radar, una plataforma de aprendizaje adaptativo con Next.js, integrando módulos de Flashcards con algoritmos de repetición espaciada para optimizar la retención estudiantil.",
+        "Implementé el algoritmo Bayesian Knowledge Tracing (BKT) para modelar el conocimiento del usuario en tiempo real, personalizando la dificultad de los Simulacros de Examen.",
+        "Gestioné la infraestructura de datos y autenticación con Supabase (PostgreSQL), asegurando la integridad de las sesiones y el escalado del banco de preguntas en producción.",
+        "Configuré el despliegue automatizado del frontend y servicios auxiliares en Linux VPS utilizando Docker y Nginx, garantizando alta disponibilidad."
+      ]
+    },
+    {
+      "id": "exp-freelance",
+      "role": "Desarrollador Full Stack Freelance",
+      "company": "Freelance / Proyectos Independientes",
+      "location": "Remoto",
+      "from": "Ene. 2024",
+      "to": "Presente",
+      "bullets": [
+        "Desarrollo soluciones digitales a medida para MYPES (E-commerce y Landing Pages) utilizando Next.js y React, enfocadas en optimizar la conversión y el SEO técnico (SSR).",
+        "Implementé sistemas de gestión operativa, incluyendo una plataforma de administración de mesas para restaurantes que digitalizó el flujo de atención al cliente.",
+        "Actualmente arquitecto y desarrollo un CRM vertical para el sector odontológico, automatizando la gestión de historias clínicas y el agendamiento de pacientes."
+      ]
+    },
+    {
+      "id": "exp-john-nash",
+      "role": "Desarrollador de Software",
+      "company": "IEP John Nash",
+      "location": "Trujillo, Perú",
+      "from": "Jul. 2024",
+      "to": "Ene. 2026",
+      "bullets": [
+        "Dirigí la transformación digital migrando flujos operativos manuales (Excel) a un ecosistema web centralizado con Laravel, Vite y PostgreSQL.",
+        "Desarrollé el Sistema de Matrículas, automatizando el registro de +200 estudiantes y reduciendo el tiempo de procesamiento administrativo de 5 días a horas.",
+        "Gestioné el ciclo de vida completo (SDLC) del Sistema de Reclamos y actualmente lidero la arquitectura y desarrollo del CRM institucional para la gestión de relaciones."
+      ]
+    },
+    {
+      "id": "exp-neyosac",
+      "role": "Practicante Preprofesional Backend & DevOps",
+      "company": "Servicios Generales Neyo EIRL",
+      "location": "Trujillo, Perú",
+      "from": "Jul. 2024",
+      "to": "Dic. 2024",
+      "bullets": [
+        "Colaboré en el desarrollo del backend seguro para la plataforma e-commerce utilizando Python (FastAPI), implementando autenticación (JWT) y protección de endpoints.",
+        "Estandaricé los entornos de desarrollo y producción mediante la contenerización de servicios con Docker, eliminando inconsistencias en el despliegue.",
+        "Optimicé la configuración del servidor para soportar el catálogo de autopartes, asegurando tiempos de respuesta rápidos en las consultas de búsqueda."
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-cronopus",
+      "name": "CronOpus",
+      "stack": [
+        "Python",
+        "Jinja2",
+        "LaTeX"
+      ],
+      "from": "Ene. 2026",
+      "to": "Presente",
+      "bullets": [
+        "Desarrollo un orquestador de carrera inteligente que utiliza LLMs (Modelos de Lenguaje) para reescribir y optimizar currículums en LaTeX dinámicamente según la oferta laboral.",
+        "Implementé un motor de inyección de contexto (Context Injection) que adapta el perfil profesional y las habilidades técnicas en tiempo real, mejorando la tasa de lectura de los ATS."
+      ]
+    },
+    {
+      "id": "proj-equismath",
+      "name": "EquisMath",
+      "stack": [
+        "React",
+        "TypeScript",
+        "DnD Kit",
+        "Node.js"
+      ],
+      "from": "Dic. 2025",
+      "to": "Ene. 2026",
+      "bullets": [
+        "Construí una plataforma educativa gamificada para álgebra, diseñando un motor de resolución de ecuaciones lineales mediante una interfaz de bloques arrastrables (Drag-and-Drop).",
+        "Desarrollé un modo Sandbox para docentes y un sistema de validación lógica en el frontend, permitiendo la creación de ejercicios personalizados sin recargar la página."
+      ]
+    },
+    {
+      "id": "proj-kaitorat",
+      "name": "Kaitorat",
+      "stack": [
+        "React Native (Expo)",
+        "React",
+        "PocketBase"
+      ],
+      "from": "Dic. 2025",
+      "to": "Presente",
+      "bullets": [
+        "Desarrollé una solución multiplataforma (Web y Móvil) de productividad con una UI inspirada en Persona 5 Royal, logrando una experiencia nativa fluida en Android.",
+        "Implementé animaciones complejas y sincronización en tiempo real de temporizadores Pomodoro, gestionando el estado global y la persistencia local en dispositivos móviles."
+      ]
+    },
+    {
+      "id": "proj-dotfiles",
+      "name": "Linux Environment Automation",
+      "stack": [
+        "Bash",
+        "Lua",
+        "Arch Linux"
+      ],
+      "from": "Ene. 2024",
+      "to": "Presente",
+      "bullets": [
+        "Mantengo una suite de automatización (Dotfiles) para el despliegue reproducible de entornos de desarrollo en ArchLinux, reduciendo el tiempo de configuración de horas a minutos.",
+        "Programé scripts en Bash y Lua para la gestión de ventanas y monitoreo del sistema, optimizando el flujo de trabajo y la gestión de recursos en hardware limitado."
+      ]
+    },
+    {
+      "id": "proj-proyectalia",
+      "name": "Proyectalia",
+      "stack": [
+        "Node.js",
+        "Express"
+      ],
+      "from": "Jul. 2025",
+      "to": "Dic. 2025",
+      "bullets": [
+        "Desarrollé el backend de una plataforma de colaboración estudiantil utilizando Express.js, implementando una arquitectura MVC escalable.",
+        "Diseñé una API RESTful optimizada para la gestión de perfiles, integrando middlewares de validación y manejo centralizado de errores."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "Universidad Nacional de Trujillo",
+      "location": "Trujillo, Perú",
+      "degree": "Bachiller en Ingeniería Informática",
+      "from": "Ene. 2021",
+      "to": "Feb. 2026"
+    }
+  ],
+  "certifications": [
+    {
+      "name": "Cisco CyberOps Associate",
+      "issuer": "Cisco Networking Academy",
+      "description": "Security Operations & Threat Analysis"
+    },
+    {
+      "name": "Cisco CCNA",
+      "issuer": "Cisco Networking Academy",
+      "description": "Switching, Routing, and Wireless Essentials"
+    },
+    {
+      "name": "Scrum Foundation Professional Certificate (SFPC)",
+      "issuer": "CertiProf",
+      "description": "Metodologías Ágiles"
+    }
+  ]
+}

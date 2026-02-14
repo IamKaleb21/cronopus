@@ -1,0 +1,173 @@
+{% raw %}\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage[hidelinks,xetex]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+% glyphtounicode removed: Tectonic (XeTeX) does not support it; Unicode handled natively
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+% pdfgentounicode removed: Tectonic uses XeTeX, which handles Unicode natively
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-7pt}
+}
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}{% endraw %}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\Huge \scshape {{ profile.full_name }}} \\ \vspace{4pt}
+    \small
+    {{ profile.contact.phone }} $|$
+    \href{mailto:{{ profile.contact.email }}}{{ profile.contact.email }} $|$
+    {{ profile.contact.location }} \\ \vspace{2pt}
+{% if profile_links_raw %}{% if profile_links_raw.linkedin %}\href{ {{- profile_links_raw.linkedin -}} }{ {{ profile.contact.links.linkedin.replace('https://', '').rstrip('/') }} }{% if profile_links_raw.github or profile_links_raw.website %} $|$ {% endif %}{% endif %}{% if profile_links_raw.github %}\href{ {{- profile_links_raw.github -}} }{ {{ profile.contact.links.github.replace('https://', '').rstrip('/') }} }{% if profile_links_raw.website %} $|$ {% endif %}{% endif %}{% if profile_links_raw.website %}\href{ {{- profile_links_raw.website -}} }{ {{ profile.contact.links.website.replace('https://', '').rstrip('/') }} }{% endif %}
+{% endif %}
+\end{center}
+
+
+% --- SECCIÓN: RESUMEN / PERFIL ---
+\section{Perfil Profesional}
+{{ cv.summary }}
+
+%-----------PROGRAMMING SKILLS-----------
+\section{Habilidades Técnicas}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+{% if cv.skills.languages %}
+     \textbf{Lenguajes}{: {{ cv.skills.languages | join(', ') }}} \\
+{% endif %}
+{% if cv.skills.frontend %}
+     \textbf{Frontend}{: {{ cv.skills.frontend | join(', ') }}} \\
+{% endif %}
+{% if cv.skills.backend_db %}
+     \textbf{Backend \& Bases de Datos}{: {{ cv.skills.backend_db | join(', ') }}} \\
+{% endif %}
+{% if cv.skills.mobile %}
+     \textbf{Desarrollo Móvil}{: {{ cv.skills.mobile | join(', ') }}} \\
+{% endif %}
+{% if cv.skills.data_ml %}
+     \textbf{Data Science \& ML}{: {{ cv.skills.data_ml | join(', ') }}} \\
+{% endif %}
+{% if cv.skills.infra_tools %}
+     \textbf{Infraestructura \& Herramientas}{: {{ cv.skills.infra_tools | join(', ') }}} \\
+{% endif %}
+{% if cv.skills.libraries %}
+     \textbf{Librerías}{: {{ cv.skills.libraries | join(', ') }}} \\
+{% endif %}
+{% if cv.skills.languages_spoken %}
+     \textbf{Idiomas}{: {% for ls in cv.skills.languages_spoken %}{{ ls.name }} ({{ ls.level }}){% if not loop.last %}, {% endif %}{% endfor %} } \\
+{% endif %}
+    }}
+ \end{itemize}
+
+%-----------EXPERIENCE-----------
+\section{Experiencia Profesional}
+  \resumeSubHeadingListStart
+{% for exp in cv.experience %}
+\resumeSubheading
+  { {{ exp.role }} }{ {{ exp['from'] }} -- {{ exp.to }} }
+  { {{ exp.company }} }{ {{ exp.location }} }
+  \resumeItemListStart
+{% for bullet in exp.bullets %}
+    \resumeItem{ {{ bullet }} }
+{% endfor %}
+  \resumeItemListEnd
+
+{% endfor %}
+  \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Proyectos}
+    \resumeSubHeadingListStart
+{% for proj in cv.projects %}
+      \resumeProjectHeading
+          {\textbf{ {{ proj.name }} } $|$ \emph{ {{ proj.stack | join(', ') }} }}{ {{ proj['from'] }} -- {{ proj.to }} }
+          \resumeItemListStart
+{% for bullet in proj.bullets %}
+            \resumeItem{ {{ bullet }} }
+{% endfor %}
+          \resumeItemListEnd
+
+{% endfor %}
+    \resumeSubHeadingListEnd
+
+
+  %-----------EDUCATION-----------
+\section{Educación}
+  \resumeSubHeadingListStart
+{% for edu in profile.education %}
+    \resumeSubheading
+      { {{ edu.institution }} }{ {{ edu.location }} }
+      { {{ edu.degree }} }{ {{ edu['from'] }} -- {{ edu.to }} }
+{% endfor %}
+  \resumeSubHeadingListEnd
+
+%-----------CERTIFICATIONS-----------
+\section{Certificaciones}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+{% for cert in profile.certifications %}
+     \textbf{ {{ cert.name }} }{: {{ cert.description }} \hfill \textit{({{ cert.issuer }})}}
+{% if not loop.last %} \\
+{% endif %}
+{% endfor %}
+    }}
+ \end{itemize}
+
+\end{document}

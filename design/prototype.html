@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CronOpus - Job Command Center</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* ============================================
+           CSS CUSTOM PROPERTIES (Design Tokens)
+        ============================================ */
+        :root {
+            /* Colors - Lavender Nights Dark Theme */
+            --bg-primary: #0d0a1a;
+            --bg-secondary: #1a1528;
+            --bg-tertiary: #251e38;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.06);
+
+            /* Accent Colors - Soft Purple (used sparingly) */
+            --accent-primary: #8b5cf6;
+            --accent-primary-light: #c4b5fd;
+            --accent-secondary: #a78bfa;
+            --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #c4b5fd 50%, #f0abfc 100%);
+            --accent-glow: rgba(139, 92, 246, 0.3);
+
+            /* Status Colors - Soft Pastels */
+            --status-new: #f472b6;
+            --status-saved: #a78bfa;
+            --status-generated: #6ee7b7;
+            --status-applied: #fdba74;
+            --status-expired: #9ca3af;
+            --status-discarded: #fca5a5;
+
+            /* Text Colors - Warm */
+            --text-primary: #faf5ff;
+            --text-secondary: #b8b8d0;
+            --text-muted: #8888a8;
+
+            /* Borders - Neutral */
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-light: rgba(255, 255, 255, 0.12);
+            --border-accent: rgba(139, 92, 246, 0.4);
+
+            /* Effects - Subtle Glows */
+            --glow-primary: 0 0 20px rgba(139, 92, 246, 0.25);
+            --glow-secondary: 0 0 15px rgba(167, 139, 250, 0.15);
+            --glow-card: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+            /* Spacing */
+            --sidebar-width: 280px;
+            --header-height: 64px;
+
+            /* Border Radius - Soft */
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+
+            /* Transitions */
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* ============================================
+           RESET & BASE STYLES
+        ============================================ */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Background Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(196, 181, 253, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(244, 114, 182, 0.06) 0%, transparent 30%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* ============================================
+           LAYOUT STRUCTURE
+        ============================================ */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ============================================
+           SIDEBAR
+        ============================================ */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 30;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: var(--glow-primary);
+            transition: transform var(--transition-bounce), box-shadow var(--transition-normal);
+        }
+
+        .logo-icon:hover {
+            transform: scale(1.05) rotate(-3deg);
+            box-shadow: var(--glow-primary), 0 0 20px var(--accent-glow);
+        }
+
+        .logo-text {
+            font-weight: 700;
+            font-size: 1.35rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-section {
+            padding: 1.5rem 0;
+            flex: 1;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            padding: 0 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-primary-light);
+            border-left-color: var(--accent-primary);
+        }
+
+        .nav-item-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .nav-item-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .nav-item-badge {
+            margin-left: auto;
+            background: var(--accent-gradient);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-sm);
+            min-width: 22px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Status Filters */
+        .status-filters {
+            padding: 0 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .status-filter {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            font-size: 0.85rem;
+        }
+
+        .status-filter:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(4px);
+        }
+
+        .status-filter.active {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.new {
+            background: var(--status-new);
+            box-shadow: 0 0 8px var(--status-new);
+        }
+
+        .status-dot.saved {
+            background: var(--status-saved);
+        }
+
+        .status-dot.generated {
+            background: var(--status-generated);
+        }
+
+        .status-dot.applied {
+            background: var(--status-applied);
+        }
+
+        .status-dot.expired {
+            background: var(--status-expired);
+        }
+
+        .status-count {
+            margin-left: auto;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Sidebar Footer */
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .scraper-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .scraper-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--status-generated);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* ============================================
+           MAIN CONTENT
+        ============================================ */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            height: var(--header-height);
+            background: rgba(26, 21, 40, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .header-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 0.6rem 1.25rem;
+            width: 300px;
+            transition: all var(--transition-normal);
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15), var(--glow-secondary);
+            background: rgba(139, 92, 246, 0.08);
+        }
+
+        .search-box input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-icon {
+            color: var(--text-muted);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 1.35rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
+            pointer-events: none;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-primary), 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0) scale(0.97);
+            box-shadow: 0 2px 10px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border-color: var(--accent-secondary);
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.97);
+        }
+
+        .btn-icon {
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .btn-icon:hover {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-primary-light);
+            border-color: var(--accent-primary);
+            box-shadow: var(--glow-secondary);
+        }
+
+        .btn-icon:active {
+            transform: scale(0.93);
+        }
+
+        /* ============================================
+           JOBS LIST (DASHBOARD VIEW)
+        ============================================ */
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 1.35rem;
+            display: flex;
+            align-items: center;
+            gap: 1.15rem;
+            transition: all var(--transition-normal);
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            border-color: var(--border-light);
+            transform: translateY(-4px);
+            box-shadow: var(--glow-card);
+            background: var(--bg-card-hover);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: transform var(--transition-bounce);
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.08);
+        }
+
+        .stat-icon.blue {
+            background: rgba(244, 114, 182, 0.18);
+            color: var(--status-new);
+        }
+
+        .stat-icon.purple {
+            background: rgba(139, 92, 246, 0.18);
+            color: var(--accent-primary-light);
+        }
+
+        .stat-icon.green {
+            background: rgba(110, 231, 183, 0.18);
+            color: var(--status-generated);
+        }
+
+        .stat-icon.orange {
+            background: rgba(253, 186, 116, 0.18);
+            color: var(--status-applied);
+        }
+
+        .stat-content h3 {
+            font-size: 1.85rem;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--text-primary);
+        }
+
+        .stat-content p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            font-weight: 500;
+        }
+
+        /* Jobs Grid */
+        .jobs-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .jobs-header h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .jobs-header h2 span {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            padding: 4px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .view-toggle button {
+            padding: 0.45rem 0.85rem;
+            border: none;
+            background: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+        }
+
+        .view-toggle button:hover {
+            color: var(--text-primary);
+        }
+
+        .view-toggle button.active {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+        }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Job Card */
+        .job-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 1.65rem;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .job-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .job-card:hover {
+            border-color: var(--border-light);
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: var(--glow-card);
+            background: var(--bg-card-hover);
+        }
+
+        .job-card:hover::before {
+            opacity: 1;
+        }
+
+        .job-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .job-source {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .source-logo {
+            width: 34px;
+            height: 34px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transition: transform var(--transition-bounce);
+        }
+
+        .job-card:hover .source-logo {
+            transform: scale(1.08);
+        }
+
+        .source-logo.practicas {
+            background: linear-gradient(135deg, #8b5cf6, #c4b5fd);
+        }
+
+        .source-logo.computrabajo {
+            background: linear-gradient(135deg, #f472b6, #fdba74);
+        }
+
+        .job-status-badge {
+            padding: 0.35rem 0.85rem;
+            border-radius: var(--radius-xl);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .job-status-badge.new {
+            background: rgba(34, 211, 238, 0.15);
+            color: var(--status-new);
+        }
+
+        .job-status-badge.saved {
+            background: rgba(124, 58, 237, 0.15);
+            color: var(--accent-primary-light);
+        }
+
+        .job-status-badge.generated {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--status-generated);
+        }
+
+        .job-status-badge.applied {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--status-applied);
+        }
+
+        .job-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+            line-height: 1.3;
+        }
+
+        .job-company {
+            font-size: 0.95rem;
+            color: var(--accent-secondary);
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+
+        .job-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .job-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .job-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .job-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .job-tag {
+            padding: 0.25rem 0.6rem;
+            background: rgba(124, 58, 237, 0.1);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: var(--accent-primary-light);
+        }
+
+        .job-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .job-actions .btn {
+            flex: 1;
+            justify-content: center;
+            padding: 0.6rem;
+            font-size: 0.8rem;
+        }
+
+        /* ============================================
+           EDITOR VIEW (Split View)
+        ============================================ */
+        .editor-container {
+            display: none;
+            /* Toggle with JS in real app */
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            height: calc(100vh - var(--header-height));
+        }
+
+        .editor-panel {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-subtle);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .panel-title .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--status-generated);
+            border-radius: 50%;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .panel-actions button {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            background: none;
+            border: 1px solid var(--border-light);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .panel-actions button:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        /* Monaco-style Editor */
+        .code-editor {
+            flex: 1;
+            overflow: auto;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            background: var(--bg-primary);
+        }
+
+        .code-editor .line-numbers {
+            float: left;
+            width: 40px;
+            text-align: right;
+            padding-right: 1rem;
+            color: var(--text-muted);
+            border-right: 1px solid var(--border-subtle);
+            margin-right: 1rem;
+            user-select: none;
+        }
+
+        .code-editor .code-content {
+            color: var(--text-secondary);
+        }
+
+        .code-editor .keyword {
+            color: #c586c0;
+        }
+
+        .code-editor .command {
+            color: #569cd6;
+        }
+
+        .code-editor .string {
+            color: #ce9178;
+        }
+
+        .code-editor .comment {
+            color: #6a9955;
+            font-style: italic;
+        }
+
+        .code-editor .bracket {
+            color: #ffd700;
+        }
+
+        /* PDF Preview Panel */
+        .preview-panel {
+            display: flex;
+            flex-direction: column;
+            background: #2a2a35;
+        }
+
+        .pdf-preview {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            overflow: auto;
+        }
+
+        .pdf-document {
+            background: white;
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 8.5/11;
+            border-radius: 4px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            padding: 3rem 2.5rem;
+            color: #1a1a1a;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .pdf-document h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: #0a0a0a;
+        }
+
+        .pdf-document .subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .pdf-document .contact-info {
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .pdf-document hr {
+            border: none;
+            border-top: 2px solid #7c3aed;
+            margin: 1rem 0;
+        }
+
+        .pdf-document h2 {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #7c3aed;
+            margin-bottom: 0.75rem;
+        }
+
+        .pdf-document .experience-item {
+            margin-bottom: 1rem;
+        }
+
+        .pdf-document .experience-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .pdf-document .experience-title {
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .pdf-document .experience-date {
+            color: #888;
+            font-size: 10px;
+        }
+
+        .pdf-document .experience-company {
+            color: #555;
+            font-size: 10px;
+            margin-bottom: 0.35rem;
+        }
+
+        .pdf-document ul {
+            padding-left: 1rem;
+            font-size: 10px;
+            color: #444;
+        }
+
+        .pdf-document li {
+            margin-bottom: 0.2rem;
+        }
+
+        .pdf-document .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        .pdf-document .skill-tag {
+            background: #f0f0f0;
+            padding: 0.15rem 0.5rem;
+            border-radius: 3px;
+            font-size: 9px;
+        }
+
+        /* ============================================
+           CV HISTORY VIEW
+        ============================================ */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .history-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            transition: all var(--transition-fast);
+        }
+
+        .history-item:hover {
+            border-color: var(--border-light);
+            background: var(--bg-card-hover);
+        }
+
+        .history-pdf-thumb {
+            width: 64px;
+            height: 80px;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #ef4444;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .history-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* ============================================
+           JOB DETAIL MODAL
+        ============================================ */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .modal-close:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-job-info h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-job-info .company {
+            font-size: 1.1rem;
+            color: var(--accent-secondary);
+            font-weight: 500;
+        }
+
+        .modal-section {
+            margin-top: 1.5rem;
+        }
+
+        .modal-section h3 {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .modal-section p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* ============================================
+           TELEGRAM PREVIEW (Floating Widget)
+        ============================================ */
+        .telegram-preview {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 360px;
+            background: #1e2939;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            z-index: 40;
+        }
+
+        .telegram-header {
+            background: linear-gradient(135deg, #2aabee, #229ed9);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .telegram-header .avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .telegram-header .info h4 {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .telegram-header .info span {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .telegram-messages {
+            padding: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .telegram-message {
+            background: #2d3b4e;
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .telegram-message .title {
+            font-weight: 600;
+            color: var(--accent-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .telegram-message .company {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .telegram-message .details {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .telegram-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .telegram-buttons button {
+            flex: 1;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .telegram-buttons .save-btn {
+            background: rgba(124, 58, 237, 0.2);
+            color: var(--accent-primary-light);
+        }
+
+        .telegram-buttons .save-btn:hover {
+            background: rgba(124, 58, 237, 0.3);
+        }
+
+        .telegram-buttons .discard-btn {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .telegram-buttons .discard-btn:hover {
+            background: rgba(239, 68, 68, 0.25);
+        }
+
+        .telegram-summary {
+            background: rgba(6, 182, 212, 0.15);
+            border-left: 3px solid var(--accent-secondary);
+            padding: 0.75rem 1rem;
+            border-radius: 0 12px 12px 0;
+            margin-bottom: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--accent-secondary);
+        }
+
+        /* ============================================
+           TEMPLATE EDITOR (Config View)
+        ============================================ */
+        .template-editor-view {
+            display: none;
+            /* Toggle in real app */
+        }
+
+        .template-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .template-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .template-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--status-generated);
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .version-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .version-selector select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+        ============================================ */
+        @media (max-width: 1200px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .telegram-preview {
+                width: calc(100% - 2rem);
+                right: 1rem;
+                left: 1rem;
+            }
+        }
+
+        /* ============================================
+           ANIMATIONS
+        ============================================ */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .job-card {
+            animation: fadeInUp 0.4s ease backwards;
+        }
+
+        .job-card:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .job-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .job-card:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        .job-card:nth-child(4) {
+            animation-delay: 0.2s;
+        }
+
+        .job-card:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+
+        .job-card:nth-child(6) {
+            animation-delay: 0.3s;
+        }
+
+        /* Focus States */
+        :focus-visible {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--border-light);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon"><i data-lucide="zap" style="width: 20px; height: 20px;"></i></div>
+                    <span class="logo-text">CronOpus</span>
+                </div>
+            </div>
+
+            <nav class="nav-section">
+                <div class="nav-section-title">Principal</div>
+                <div class="nav-item active">
+                    <span class="nav-item-icon"><i data-lucide="layout-dashboard"
+                            style="width: 18px; height: 18px;"></i></span>
+                    <span class="nav-item-label">Dashboard</span>
+                    <span class="nav-item-badge">24</span>
+                </div>
+                <div class="nav-item">
+                    <span class="nav-item-icon"><i data-lucide="file-text"
+                            style="width: 18px; height: 18px;"></i></span>
+                    <span class="nav-item-label">Historial CVs</span>
+                </div>
+                <div class="nav-item">
+                    <span class="nav-item-icon"><i data-lucide="file-code"
+                            style="width: 18px; height: 18px;"></i></span>
+                    <span class="nav-item-label">Template Master</span>
+                </div>
+
+                <div class="nav-section-title" style="margin-top: 1.5rem;">Filtrar por Estado</div>
+                <div class="status-filters">
+                    <div class="status-filter active">
+                        <span class="status-dot new"></span>
+                        <span>Nuevas</span>
+                        <span class="status-count">12</span>
+                    </div>
+                    <div class="status-filter">
+                        <span class="status-dot saved"></span>
+                        <span>Guardadas</span>
+                        <span class="status-count">8</span>
+                    </div>
+                    <div class="status-filter">
+                        <span class="status-dot generated"></span>
+                        <span>CV Generado</span>
+                        <span class="status-count">3</span>
+                    </div>
+                    <div class="status-filter">
+                        <span class="status-dot applied"></span>
+                        <span>Aplicadas</span>
+                        <span class="status-count">5</span>
+                    </div>
+                    <div class="status-filter">
+                        <span class="status-dot expired"></span>
+                        <span>Expiradas</span>
+                        <span class="status-count">14</span>
+                    </div>
+                </div>
+
+                <div class="nav-section-title" style="margin-top: 1.5rem;">Fuentes</div>
+                <div class="status-filters">
+                    <div class="status-filter">
+                        <div class="source-logo practicas" style="width: 20px; height: 20px; font-size: 0.6rem;">P</div>
+                        <span>Practicas.pe</span>
+                        <span class="status-count">15</span>
+                    </div>
+                    <div class="status-filter">
+                        <div class="source-logo computrabajo" style="width: 20px; height: 20px; font-size: 0.6rem;">CT
+                        </div>
+                        <span>CompuTrabajo</span>
+                        <span class="status-count">9</span>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="scraper-status">
+                    <span class="scraper-dot"></span>
+                    <span>Scrapers activos • Última sync: 14:32</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1 class="header-title">Ofertas de Trabajo</h1>
+                <div class="header-actions">
+                    <div class="search-box">
+                        <span class="search-icon"><i data-lucide="search" style="width: 18px; height: 18px;"></i></span>
+                        <input type="text" placeholder="Buscar ofertas...">
+                    </div>
+                    <button class="btn btn-icon" aria-label="Notificaciones"><i data-lucide="bell"
+                            style="width: 18px; height: 18px;"></i></button>
+                    <button class="btn btn-icon" aria-label="Configuración"><i data-lucide="settings"
+                            style="width: 18px; height: 18px;"></i></button>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i data-lucide="sparkles" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>12</h3>
+                            <p>Nuevas hoy</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><i data-lucide="gem" style="width: 22px; height: 22px;"></i></div>
+                        <div class="stat-content">
+                            <h3>8</h3>
+                            <p>Guardadas</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i data-lucide="file-check" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>3</h3>
+                            <p>CVs generados</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange"><i data-lucide="circle-check"
+                                style="width: 22px; height: 22px;"></i></div>
+                        <div class="stat-content">
+                            <h3>5</h3>
+                            <p>Aplicadas esta semana</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Jobs Header -->
+                <div class="jobs-header">
+                    <h2>Ofertas Guardadas <span>(8 ofertas)</span></h2>
+                    <div class="view-toggle">
+                        <button class="active" aria-label="Vista cuadrícula"><i data-lucide="layout-grid"
+                                style="width: 16px; height: 16px;"></i></button>
+                        <button aria-label="Vista lista"><i data-lucide="list"
+                                style="width: 16px; height: 16px;"></i></button>
+                    </div>
+                </div>
+
+                <!-- Jobs Grid -->
+                <div class="jobs-grid">
+                    <!-- Job Card 1 -->
+                    <div class="job-card">
+                        <div class="job-card-header">
+                            <div class="job-source">
+                                <div class="source-logo practicas">P</div>
+                            </div>
+                            <span class="job-status-badge saved">Guardado</span>
+                        </div>
+                        <h3 class="job-title">Backend Developer Jr</h3>
+                        <p class="job-company">TechCorp Perú S.A.C.</p>
+                        <div class="job-meta">
+                            <span class="job-meta-item"><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+                                Lima, Remoto</span>
+                            <span class="job-meta-item"><i data-lucide="banknote"
+                                    style="width: 14px; height: 14px;"></i> S/ 2,500 - 3,500</span>
+                        </div>
+                        <p class="job-description line-clamp-2">Buscamos desarrollador backend con experiencia en Python
+                            y FastAPI
+                            para unirse a nuestro equipo de desarrollo...</p>
+                        <div class="job-tags">
+                            <span class="job-tag">Python</span>
+                            <span class="job-tag">FastAPI</span>
+                            <span class="job-tag">PostgreSQL</span>
+                        </div>
+                        <div class="job-actions">
+                            <button class="btn btn-primary"><i data-lucide="bot" style="width: 16px; height: 16px;"></i>
+                                Generar CV</button>
+                            <button class="btn btn-secondary">Ver Detalle</button>
+                        </div>
+                    </div>
+
+                    <!-- Job Card 2 -->
+                    <div class="job-card">
+                        <div class="job-card-header">
+                            <div class="job-source">
+                                <div class="source-logo computrabajo">CT</div>
+                            </div>
+                            <span class="job-status-badge generated">CV Listo</span>
+                        </div>
+                        <h3 class="job-title">Desarrollador Full Stack</h3>
+                        <p class="job-company">StartupXYZ</p>
+                        <div class="job-meta">
+                            <span class="job-meta-item"><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+                                San Isidro, Lima</span>
+                            <span class="job-meta-item"><i data-lucide="banknote"
+                                    style="width: 14px; height: 14px;"></i> S/ 4,000 - 5,500</span>
+                        </div>
+                        <p class="job-description line-clamp-2">Únete a nuestro equipo como desarrollador full stack.
+                            Trabajarás con
+                            React, Node.js y bases de datos NoSQL...</p>
+                        <div class="job-tags">
+                            <span class="job-tag">React</span>
+                            <span class="job-tag">Node.js</span>
+                            <span class="job-tag">MongoDB</span>
+                        </div>
+                        <div class="job-actions">
+                            <button class="btn btn-primary"><i data-lucide="download"
+                                    style="width: 16px; height: 16px;"></i> Descargar CV</button>
+                            <button class="btn btn-secondary"><i data-lucide="check"
+                                    style="width: 16px; height: 16px;"></i> Marcar Aplicado</button>
+                        </div>
+                    </div>
+
+                    <!-- Job Card 3 -->
+                    <div class="job-card">
+                        <div class="job-card-header">
+                            <div class="job-source">
+                                <div class="source-logo practicas">P</div>
+                            </div>
+                            <span class="job-status-badge new">Nueva</span>
+                        </div>
+                        <h3 class="job-title">Practicante Python</h3>
+                        <p class="job-company">DataScience Corp</p>
+                        <div class="job-meta">
+                            <span class="job-meta-item"><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+                                Miraflores</span>
+                            <span class="job-meta-item"><i data-lucide="banknote"
+                                    style="width: 14px; height: 14px;"></i> S/ 1,200</span>
+                        </div>
+                        <p class="job-description line-clamp-2">Buscamos practicante con conocimientos en Python,
+                            análisis de datos y
+                            machine learning básico...</p>
+                        <div class="job-tags">
+                            <span class="job-tag">Python</span>
+                            <span class="job-tag">Pandas</span>
+                            <span class="job-tag">ML</span>
+                        </div>
+                        <div class="job-actions">
+                            <button class="btn btn-primary"><i data-lucide="gem" style="width: 16px; height: 16px;"></i>
+                                Guardar</button>
+                            <button class="btn btn-secondary"><i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                                Descartar</button>
+                        </div>
+                    </div>
+
+                    <!-- Job Card 4 -->
+                    <div class="job-card">
+                        <div class="job-card-header">
+                            <div class="job-source">
+                                <div class="source-logo computrabajo">CT</div>
+                            </div>
+                            <span class="job-status-badge applied">Aplicado</span>
+                        </div>
+                        <h3 class="job-title">Software Engineer</h3>
+                        <p class="job-company">Banco Digital SAC</p>
+                        <div class="job-meta">
+                            <span class="job-meta-item"><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+                                Remoto 100%</span>
+                            <span class="job-meta-item"><i data-lucide="banknote"
+                                    style="width: 14px; height: 14px;"></i> S/ 6,000+</span>
+                        </div>
+                        <p class="job-description line-clamp-2">Se requiere Software Engineer para desarrollo de APIs y
+                            microservicios en entorno bancario...</p>
+                        <div class="job-tags">
+                            <span class="job-tag">Java</span>
+                            <span class="job-tag">Spring Boot</span>
+                            <span class="job-tag">AWS</span>
+                        </div>
+                        <div class="job-actions">
+                            <button class="btn btn-secondary" style="flex: 1;"><i data-lucide="file-text"
+                                    style="width: 16px; height: 16px;"></i> Ver CV Enviado</button>
+                        </div>
+                    </div>
+
+                    <!-- Job Card 5 -->
+                    <div class="job-card">
+                        <div class="job-card-header">
+                            <div class="job-source">
+                                <div class="source-logo practicas">P</div>
+                            </div>
+                            <span class="job-status-badge saved">Guardado</span>
+                        </div>
+                        <h3 class="job-title">DevOps Engineer Jr</h3>
+                        <p class="job-company">CloudTech Perú</p>
+                        <div class="job-meta">
+                            <span class="job-meta-item"><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+                                Lima</span>
+                            <span class="job-meta-item"><i data-lucide="banknote"
+                                    style="width: 14px; height: 14px;"></i> S/ 3,000 - 4,500</span>
+                        </div>
+                        <p class="job-description line-clamp-2">Buscamos DevOps Jr con conocimientos en Docker,
+                            Kubernetes, CI/CD
+                            pipelines y cloud services...</p>
+                        <div class="job-tags">
+                            <span class="job-tag">Docker</span>
+                            <span class="job-tag">Kubernetes</span>
+                            <span class="job-tag">AWS</span>
+                        </div>
+                        <div class="job-actions">
+                            <button class="btn btn-primary"><i data-lucide="bot" style="width: 16px; height: 16px;"></i>
+                                Generar CV</button>
+                            <button class="btn btn-secondary">Ver Detalle</button>
+                        </div>
+                    </div>
+
+                    <!-- Job Card 6 -->
+                    <div class="job-card">
+                        <div class="job-card-header">
+                            <div class="job-source">
+                                <div class="source-logo computrabajo">CT</div>
+                            </div>
+                            <span class="job-status-badge new">Nueva</span>
+                        </div>
+                        <h3 class="job-title">Frontend Developer</h3>
+                        <p class="job-company">AgenciaTech</p>
+                        <div class="job-meta">
+                            <span class="job-meta-item"><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i>
+                                Surco, Lima</span>
+                            <span class="job-meta-item"><i data-lucide="banknote"
+                                    style="width: 14px; height: 14px;"></i> S/ 3,500</span>
+                        </div>
+                        <p class="job-description line-clamp-2">Desarrollador frontend con experiencia en React,
+                            TypeScript y diseño
+                            responsive...</p>
+                        <div class="job-tags">
+                            <span class="job-tag">React</span>
+                            <span class="job-tag">TypeScript</span>
+                            <span class="job-tag">TailwindCSS</span>
+                        </div>
+                        <div class="job-actions">
+                            <button class="btn btn-primary"><i data-lucide="gem" style="width: 16px; height: 16px;"></i>
+                                Guardar</button>
+                            <button class="btn btn-secondary"><i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                                Descartar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- TELEGRAM PREVIEW WIDGET -->
+    <div class="telegram-preview">
+        <div class="telegram-header">
+            <div class="avatar"><i data-lucide="bot" style="width: 20px; height: 20px;"></i></div>
+            <div class="info">
+                <h4>CronOpus Bot</h4>
+                <span>Online</span>
+            </div>
+        </div>
+        <div class="telegram-messages">
+            <div class="telegram-summary">
+                🔔 He encontrado 3 ofertas nuevas
+            </div>
+            <div class="telegram-message">
+                <div class="title">Backend Developer Jr</div>
+                <div class="company">TechCorp Perú S.A.C.</div>
+                <div class="details"><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> Lima, Remoto • <i
+                        data-lucide="banknote" style="width: 14px; height: 14px;"></i> S/ 2,500 - 3,500</div>
+                <div class="telegram-buttons">
+                    <button class="save-btn"><i data-lucide="gem" style="width: 16px; height: 16px;"></i>
+                        Guardar</button>
+                    <button class="discard-btn"><i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                        Descartar</button>
+                </div>
+            </div>
+            <div class="telegram-message">
+                <div class="title">Practicante Python</div>
+                <div class="company">DataScience Corp</div>
+                <div class="details"><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> Miraflores • <i
+                        data-lucide="banknote" style="width: 14px; height: 14px;"></i> S/ 1,200</div>
+                <div class="telegram-buttons">
+                    <button class="save-btn"><i data-lucide="gem" style="width: 16px; height: 16px;"></i>
+                        Guardar</button>
+                    <button class="discard-btn"><i data-lucide="x" style="width: 16px; height: 16px;"></i>
+                        Descartar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         ADDITIONAL VIEW: EDITOR SPLIT VIEW
+         (Shown below for reference - toggle via JS)
+    ============================================ -->
+
+    <!-- 
+    EDITOR VIEW DEMO - Uncomment to see
+    This would be shown when clicking "Generar CV" on a job
+    -->
+
+    <!--
+    <div class="editor-container" style="display: grid; position: fixed; inset: 0; z-index: 500; margin-left: 280px;">
+        <div class="editor-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span class="dot"></span>
+                    <span>CV_TechCorp_BackendDeveloper.tex</span>
+                </div>
+                <div class="panel-actions">
+                    <button>Guardar</button>
+                    <button>Compilar</button>
+                </div>
+            </div>
+            <div class="code-editor">
+                <div class="line-numbers">
+                    1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10<br>11<br>12<br>13<br>14<br>15
+                </div>
+                <div class="code-content">
+                    <span class="command">\documentclass</span><span class="bracket">{</span>article<span class="bracket">}</span><br>
+                    <span class="command">\usepackage</span><span class="bracket">{</span>geometry, hyperref<span class="bracket">}</span><br>
+                    <br>
+                    <span class="comment">% START_HEADER %</span><br>
+                    <span class="command">\begin</span><span class="bracket">{</span>document<span class="bracket">}</span><br>
+                    <span class="command">\section*</span><span class="bracket">{</span><span class="string">Tu Nombre Completo</span><span class="bracket">}</span><br>
+                    <span class="command">\textit</span><span class="bracket">{</span>Backend Developer<span class="bracket">}</span><br>
+                    <span class="comment">% END_HEADER %</span><br>
+                    <br>
+                    <span class="comment">% START_EXPERIENCE %</span><br>
+                    <span class="command">\section*</span><span class="bracket">{</span><span class="string">Experiencia</span><span class="bracket">}</span><br>
+                    <span class="command">\textbf</span><span class="bracket">{</span>Python Developer<span class="bracket">}</span> - TechStartup<br>
+                    Desarrollé APIs REST con FastAPI...<br>
+                    <span class="comment">% END_EXPERIENCE %</span><br>
+                </div>
+            </div>
+        </div>
+        <div class="preview-panel">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span>Vista Previa PDF</span>
+                </div>
+                <div class="panel-actions">
+                    <button>Zoom -</button>
+                    <button>100%</button>
+                    <button>Zoom +</button>
+                    <button>📥 Descargar</button>
+                </div>
+            </div>
+            <div class="pdf-preview">
+                <div class="pdf-document">
+                    <h1>Tu Nombre Completo</h1>
+                    <div class="subtitle">Backend Developer</div>
+                    <div class="contact-info">
+                        <span>📧 email@example.com</span>
+                        <span>📱 +51 999 888 777</span>
+                        <span>🔗 linkedin.com/in/tunombre</span>
+                    </div>
+                    <hr>
+                    <h2>Experiencia Profesional</h2>
+                    <div class="experience-item">
+                        <div class="experience-header">
+                            <span class="experience-title">Python Developer</span>
+                            <span class="experience-date">2023 - Presente</span>
+                        </div>
+                        <div class="experience-company">TechStartup SAC • Lima, Perú</div>
+                        <ul>
+                            <li>Desarrollé APIs REST con FastAPI manejando +10k requests/día</li>
+                            <li>Implementé sistema de autenticación JWT con refresh tokens</li>
+                            <li>Optimicé queries SQL reduciendo tiempo de respuesta en 40%</li>
+                        </ul>
+                    </div>
+                    <div class="experience-item">
+                        <div class="experience-header">
+                            <span class="experience-title">Backend Developer Jr</span>
+                            <span class="experience-date">2022 - 2023</span>
+                        </div>
+                        <div class="experience-company">SoftwareCorp • Lima, Perú</div>
+                        <ul>
+                            <li>Mantenimiento de microservicios en Python y Docker</li>
+                            <li>Colaboración en migración de monolito a arquitectura distribuida</li>
+                        </ul>
+                    </div>
+                    <hr>
+                    <h2>Habilidades Técnicas</h2>
+                    <div class="skills-grid">
+                        <span class="skill-tag">Python</span>
+                        <span class="skill-tag">FastAPI</span>
+                        <span class="skill-tag">PostgreSQL</span>
+                        <span class="skill-tag">Docker</span>
+                        <span class="skill-tag">Git</span>
+                        <span class="skill-tag">REST APIs</span>
+                        <span class="skill-tag">SQL</span>
+                        <span class="skill-tag">Linux</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    -->
+
+    <!-- Lucide Icons Initialization -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
