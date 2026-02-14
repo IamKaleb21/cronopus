@@ -1,0 +1,140 @@
+# ===========================================
+# CronOpus Docker Compose Configuration
+# Based on PRD V1.4 - Deployment Strategy
+# ===========================================
+
+services:
+  # ============ DATABASE ============
+  db:
+    image: postgres:16-alpine
+    container_name: cronopus-db
+    restart: unless-stopped
+    networks:
+      - cronopus_net
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cronopus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cronopus_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-cronopus}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cronopus}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============ BACKEND (FastAPI) ============
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cronopus-backend
+    restart: unless-stopped
+    networks:
+      - cronopus_net
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cronopus}:${POSTGRES_PASSWORD:-cronopus_secret}@db:5432/${POSTGRES_DB:-cronopus}
+      MASTER_PASSWORD: ${MASTER_PASSWORD:-dev}
+      AUTH_TOKEN: ${AUTH_TOKEN:-cronopus-secret-token}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      PROFILE_JSON_PATH: /docs/profile.json
+      TEMPLATE_TEX_PATH: /docs/cv_master_jinja.tex
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - ./docs:/docs
+      - latex_output:/app/output
+
+  # ============ FRONTEND (React + Vite) ============
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cronopus-frontend
+    restart: unless-stopped
+    networks:
+      - cronopus_net
+    ports:
+      - "3000:80"
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /usr/share/nginx/html/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - backend
+
+  # ============ TELEGRAM BOT ============
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: telegram-bot/Dockerfile
+    container_name: cronopus-telegram-bot
+    restart: unless-stopped
+    networks:
+      - cronopus_net
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cronopus}:${POSTGRES_PASSWORD:-cronopus_secret}@db:5432/${POSTGRES_DB:-cronopus}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"print('ok')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ============ SCRAPERS ============
+  # Per PRD: Scrapers are decoupled modules. Profile "scrape" = run only via schedule.
+  # Dokploy: create a Server Job that runs:
+  #   docker compose --profile scrape run --rm scraper-practicas
+  #   docker compose --profile scrape run --rm scraper-computrabajo
+  scraper-practicas:
+    profiles:
+      - scrape
+    build:
+      context: .
+      dockerfile: scrapers/Dockerfile.practicas
+    restart: "no"
+    networks:
+      - cronopus_net
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cronopus}:${POSTGRES_PASSWORD:-cronopus_secret}@db:5432/${POSTGRES_DB:-cronopus}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  scraper-computrabajo:
+    profiles:
+      - scrape
+    build:
+      context: .
+      dockerfile: scrapers/Dockerfile.computrabajo
+    restart: "no"
+    networks:
+      - cronopus_net
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cronopus}:${POSTGRES_PASSWORD:-cronopus_secret}@db:5432/${POSTGRES_DB:-cronopus}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  latex_output:
+
+networks:
+  cronopus_net:
