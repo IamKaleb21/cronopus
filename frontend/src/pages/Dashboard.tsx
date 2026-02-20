@@ -11,6 +11,7 @@ import { Sparkles, Bookmark, FileCheck, Send, Loader2, AlertCircle, Plus } from 
 import {
     Pagination,
     PaginationContent,
+    PaginationEllipsis,
     PaginationItem,
     PaginationLink,
     PaginationNext,
@@ -98,6 +99,27 @@ export default function Dashboard({ initialJobs, itemsPerPage = 8 }: DashboardPr
     const startIndex = (currentPage - 1) * itemsPerPage
     const paginatedJobs = filteredJobs.slice(startIndex, startIndex + itemsPerPage)
 
+    // Build pagination items: at most 7 page numbers + ellipsis so it doesn't overflow
+    const maxVisiblePages = 7
+    const paginationItems: (number | "ellipsis")[] = (() => {
+        if (totalPages <= maxVisiblePages) {
+            return Array.from({ length: totalPages }, (_, i) => i + 1)
+        }
+        const pages = new Set<number>([1, totalPages])
+        for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+            if (i >= 1 && i <= totalPages) pages.add(i)
+        }
+        const sorted = [...pages].sort((a, b) => a - b)
+        const result: (number | "ellipsis")[] = []
+        let prev = 0
+        for (const p of sorted) {
+            if (prev && p - prev > 1) result.push("ellipsis")
+            result.push(p)
+            prev = p
+        }
+        return result
+    })()
+
     const handleTabChange = (value: string) => {
         setStatus(value === "ALL" ? null : (value as Job["status"]))
         setCurrentPage(1)
@@ -120,6 +142,14 @@ export default function Dashboard({ initialJobs, itemsPerPage = 8 }: DashboardPr
         } else {
             // API mode: call mutation
             updateStatusMutation.mutate({ jobId: job.id, status: 'APPLIED' })
+        }
+    }
+
+    const handleMarkExpired = (job: Job) => {
+        if (isLocalMode) {
+            setLocalJobs(prev => prev.map(j => j.id === job.id ? { ...j, status: 'EXPIRED' } : j))
+        } else {
+            updateStatusMutation.mutate({ jobId: job.id, status: 'EXPIRED' })
         }
     }
 
@@ -292,6 +322,7 @@ export default function Dashboard({ initialJobs, itemsPerPage = 8 }: DashboardPr
                 job={selectedJobForDetail}
                 open={isDetailModalOpen}
                 onOpenChange={setIsDetailModalOpen}
+                onMarkExpired={handleMarkExpired}
             />
         </>
     )
