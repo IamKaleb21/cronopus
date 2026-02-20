@@ -162,6 +162,18 @@ class TestPatchJob:
         assert "applied_at" in data
         assert data["applied_at"] is not None
 
+    def test_patch_status_to_expired(self, client, auth_headers, sample_jobs):
+        job = sample_jobs["job_saved_b"]
+        job_id = str(job.id)
+        response = client.patch(
+            f"/api/jobs/{job_id}",
+            json={"status": "EXPIRED"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "EXPIRED"
+
 
 class TestDeleteJob:
     """DELETE /api/jobs/{id}."""
