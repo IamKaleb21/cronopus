@@ -275,20 +275,26 @@ export default function Dashboard({ initialJobs, itemsPerPage = 8 }: DashboardPr
                                             />
                                         </PaginationItem>
 
-                                        {Array.from({ length: totalPages }).map((_, i) => (
-                                            <PaginationItem key={i}>
-                                                <PaginationLink
-                                                    href="#"
-                                                    isActive={currentPage === i + 1}
-                                                    onClick={(e) => {
-                                                        e.preventDefault()
-                                                        setCurrentPage(i + 1)
-                                                    }}
-                                                >
-                                                    {i + 1}
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                        ))}
+                                        {paginationItems.map((item, idx) =>
+                                            item === "ellipsis" ? (
+                                                <PaginationItem key={`ellipsis-${idx}`}>
+                                                    <PaginationEllipsis />
+                                                </PaginationItem>
+                                            ) : (
+                                                <PaginationItem key={item}>
+                                                    <PaginationLink
+                                                        href="#"
+                                                        isActive={currentPage === item}
+                                                        onClick={(e) => {
+                                                            e.preventDefault()
+                                                            setCurrentPage(item)
+                                                        }}
+                                                    >
+                                                        {item}
+                                                    </PaginationLink>
+                                                </PaginationItem>
+                                            )
+                                        )}
 
                                         <PaginationItem>
                                             <PaginationNext

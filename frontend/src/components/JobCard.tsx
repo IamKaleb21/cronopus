@@ -16,6 +16,7 @@ const statusColors: Record<string, string> = {
     SAVED: "bg-violet-500/10 text-violet-500 hover:bg-violet-500/20 border-violet-500/20",
     GENERATED: "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20",
     APPLIED: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border-orange-500/20",
+    EXPIRED: "bg-gray-500/10 text-[var(--status-expired)] hover:bg-gray-500/20 border-gray-500/20",
     DISCARDED: "bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20",
 }
 

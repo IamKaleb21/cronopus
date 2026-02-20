@@ -13,9 +13,10 @@ interface JobDetailModalProps {
     job: Job | null
     open: boolean
     onOpenChange: (open: boolean) => void
+    onMarkExpired?: (job: Job) => void
 }
 
-export function JobDetailModal({ job, open, onOpenChange }: JobDetailModalProps) {
+export function JobDetailModal({ job, open, onOpenChange, onMarkExpired }: JobDetailModalProps) {
     if (!job) return null
 
     return (
@@ -40,6 +41,17 @@ export function JobDetailModal({ job, open, onOpenChange }: JobDetailModalProps)
                             Ver Oferta
                         </a>
                     </Button>
+
+                    {job.status !== 'EXPIRED' && onMarkExpired && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-muted-foreground hover:text-[var(--status-expired)] hover:border-[var(--status-expired)]/50 hover:bg-[var(--status-expired)]/5 border-dashed"
+                            onClick={() => onMarkExpired(job)}
+                        >
+                            Marcar como vencida
+                        </Button>
+                    )}
                 </div>
             </DialogContent>
         </Dialog>

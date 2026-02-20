@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { describe, it, expect, vi } from 'vitest'
 import { JobDetailModal } from './JobDetailModal'
 import type { Job } from '@/types'
 
@@ -47,5 +48,36 @@ describe('JobDetailModal', () => {
             <JobDetailModal job={null} open={true} onOpenChange={() => {}} />
         )
         expect(screen.queryByText('Backend Developer')).not.toBeInTheDocument()
+    })
+
+    it('shows Marcar como vencida button when job is not EXPIRED and calls onMarkExpired on click', async () => {
+        const onMarkExpired = vi.fn()
+        const user = userEvent.setup()
+        render(
+            <JobDetailModal
+                job={MOCK_JOB}
+                open={true}
+                onOpenChange={() => {}}
+                onMarkExpired={onMarkExpired}
+            />
+        )
+        const button = screen.getByRole('button', { name: /marcar como vencida/i })
+        expect(button).toBeInTheDocument()
+        await user.click(button)
+        expect(onMarkExpired).toHaveBeenCalledTimes(1)
+        expect(onMarkExpired).toHaveBeenCalledWith(MOCK_JOB)
+    })
+
+    it('does not show Marcar como vencida button when job status is EXPIRED', () => {
+        const onMarkExpired = vi.fn()
+        render(
+            <JobDetailModal
+                job={{ ...MOCK_JOB, status: 'EXPIRED' }}
+                open={true}
+                onOpenChange={() => {}}
+                onMarkExpired={onMarkExpired}
+            />
+        )
+        expect(screen.queryByRole('button', { name: /marcar como vencida/i })).not.toBeInTheDocument()
     })
 })
