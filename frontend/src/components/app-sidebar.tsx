@@ -86,7 +86,7 @@ export function AppSidebar() {
             <SidebarHeader className="border-b border-border p-6 h-[70px] flex justify-center group-data-[collapsible=icon]:!p-2">
                 <div className="flex items-center gap-3 group-data-[collapsible=icon]:gap-0">
                     <div className="flex shrink-0 w-[44px] h-[44px] items-center justify-center rounded-[16px] bg-accent-gradient shadow-glow-primary transition-all duration-300 hover:scale-105 hover:rotate-[-3deg] hover:shadow-[0_0_20px_rgba(139,92,246,0.3)]">
-                        <span className="text-xl font-bold text-white"><i className="lucide-zap w-5 h-5" /></span>
+                        <img src="/vite.svg" alt="" className="w-7 h-7" />
                     </div>
                     <span className="text-[1.35rem] font-bold text-gradient tracking-tight group-data-[collapsible=icon]:hidden">
                         CronOpus
