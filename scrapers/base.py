@@ -10,6 +10,8 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 import logging
 
+from sqlmodel import select
+
 from scrapers.database import get_session, Job, JobSource, JobStatus
 from scrapers.utils import generate_job_hash, is_duplicate_job, filter_duplicate_jobs_batch
 
@@ -131,7 +133,34 @@ class BaseScraper(ABC):
             session.commit()
         
         return saved_count
-    
+
+    def mark_missing_as_expired(self, jobs: List[Dict[str, Any]]) -> int:
+        """
+        Mark jobs as EXPIRED when they are no longer in the current listing (Enfoque 2).
+        Only jobs with status NEW, SAVED, or GENERATED are considered.
+        """
+        current_ids = {
+            generate_job_hash(j.get("title", ""), j.get("company", ""))
+            for j in jobs
+        }
+        with get_session() as session:
+            stmt = select(Job).where(
+                Job.source == self.source,
+                Job.status.in_([JobStatus.NEW, JobStatus.SAVED, JobStatus.GENERATED]),
+            )
+            if current_ids:
+                stmt = stmt.where(~Job.external_id.in_(current_ids))
+            to_expire = list(session.exec(stmt).all())
+            for job in to_expire:
+                job.status = JobStatus.EXPIRED
+            if to_expire:
+                session.add_all(to_expire)
+                session.commit()
+            count = len(to_expire)
+        if count > 0:
+            self.logger.info(f"Marked {count} jobs as EXPIRED (no longer in listing)")
+        return count
+
     async def run(self) -> int:
         """
         Execute the full scraping pipeline.
@@ -144,8 +173,9 @@ class BaseScraper(ABC):
         try:
             raw_data = await self.scrape()
             jobs = self.parse(raw_data)
+            expired_count = self.mark_missing_as_expired(jobs)
             saved = self.save_jobs(jobs)
-            self.logger.info(f"Completed: {saved} new jobs saved")
+            self.logger.info(f"Completed: {expired_count} expired, {saved} new jobs saved")
             return saved
         except Exception as e:
             self.logger.error(f"Scraper failed: {e}")
