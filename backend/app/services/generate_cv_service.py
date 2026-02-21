@@ -7,7 +7,7 @@ from typing import Optional
 
 from sqlmodel import Session, select
 
-from app.models.job import Job
+from app.models.job import Job, JobStatus
 from app.models.template import Template
 from app.models.profile import Profile
 from app.models.generated_cv import GeneratedCV
@@ -71,7 +71,10 @@ def generate_cv_for_job(
         template_id=template.id,
     )
     session.add(generated_cv)
+    job.status = JobStatus.GENERATED
+    session.add(job)
     session.commit()
     session.refresh(generated_cv)
+    session.refresh(job)
 
     return (pdf_bytes, generated_cv, job)
