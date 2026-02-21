@@ -71,16 +71,27 @@ class CronOpusBot:
         return update.effective_chat.id == self.owner_chat_id
     
     # ─── Job Card Formatting ──────────────────────────────────────────────
-    
+
+    @staticmethod
+    def _escape_markdown(text: Optional[str]) -> str:
+        """Escape Markdown v1 special chars so Telegram parse_mode doesn't break."""
+        if not text:
+            return ""
+        return str(text).replace("\\", "\\\\").replace("*", "\\*").replace("_", "\\_").replace("`", "\\`").replace("[", "\\[")
+
     def _build_card_text(self, job) -> str:
         """Build the text content of a job card."""
+        title = self._escape_markdown(job.title)
+        company = self._escape_markdown(job.company)
+        location = self._escape_markdown(job.location)
+        salary = self._escape_markdown(job.salary) if job.salary else None
         lines = [
-            f"💼 *{job.title}*",
-            f"🏢 {job.company}",
-            f"📍 {job.location}",
+            f"💼 *{title}*",
+            f"🏢 {company}",
+            f"📍 {location}",
         ]
-        if job.salary:
-            lines.append(f"💰 {job.salary}")
+        if salary:
+            lines.append(f"💰 {salary}")
         lines.append(f"🔗 [Ver oferta]({job.url})")
         return "\n".join(lines)
     
