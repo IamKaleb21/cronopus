@@ -77,11 +77,18 @@ beforeEach(() => {
 })
 
 describe('AppSidebar', () => {
-    it('renders navigation: Dashboard, Plantillas, Historial', () => {
+    it('renders navigation: Dashboard, Plantillas, Historial, Perfil', () => {
         renderSidebar('/')
         expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument()
         expect(screen.getByRole('link', { name: /plantillas/i })).toBeInTheDocument()
         expect(screen.getByRole('link', { name: /historial/i })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: /perfil/i })).toBeInTheDocument()
+    })
+
+    it('Perfil link points to /profile', () => {
+        renderSidebar('/')
+        const perfilLink = screen.getByRole('link', { name: /perfil/i })
+        expect(perfilLink).toHaveAttribute('href', '/profile')
     })
 
     it('shows job count badge on Dashboard link when on dashboard', () => {

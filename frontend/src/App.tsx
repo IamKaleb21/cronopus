@@ -4,6 +4,7 @@ import Layout from "./Layout"
 import Dashboard from "./pages/Dashboard"
 import Templates from "./pages/Templates"
 import History from "./pages/History"
+import Profile from "./pages/Profile"
 import EditorPage from "./pages/EditorPage"
 import Login from "./pages/Login"
 import { AuthGuard } from "./components/AuthGuard"
@@ -22,6 +23,7 @@ function App() {
               <Route path="templates" element={<Templates />} />
               <Route path="editor" element={<EditorPage />} />
               <Route path="history" element={<History />} />
+              <Route path="profile" element={<Profile />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

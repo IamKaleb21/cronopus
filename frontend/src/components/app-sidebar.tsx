@@ -1,4 +1,4 @@
-import { Home, FileText, History, LogOut } from "lucide-react"
+import { Home, FileText, History, User, LogOut } from "lucide-react"
 import {
     Sidebar,
     SidebarContent,
@@ -21,6 +21,7 @@ const items = [
     { title: "Dashboard", url: "/", icon: Home },
     { title: "Plantillas", url: "/templates", icon: FileText },
     { title: "Historial", url: "/history", icon: History },
+    { title: "Perfil", url: "/profile", icon: User },
 ]
 
 export function AppSidebar() {
