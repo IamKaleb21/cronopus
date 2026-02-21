@@ -65,10 +65,13 @@ def generate_cv_for_job(
     latex = render_jinja_template(template.content, profile_data, adapted)
     pdf_bytes = compile_latex_to_pdf(latex)
 
+    adapted_json_str = adapted.model_dump_json()
+
     generated_cv = GeneratedCV(
         job_id=job.id,
         latex_content=latex,
         template_id=template.id,
+        adapted_content_json=adapted_json_str,
     )
     session.add(generated_cv)
     job.status = JobStatus.GENERATED

@@ -1,7 +1,8 @@
 """
 Tests for GeneratedCVs CRUD endpoints (Task 6.3). TDD: written before implementation.
-GET /api/cvs, GET /api/cvs/{id}, POST /api/cvs/{id}/recompile, DELETE /api/cvs/{id}.
+GET /api/cvs, GET /api/cvs/{id}, GET /api/cvs/{id}/adapted, PATCH /api/cvs/{id}/adapted, POST /api/cvs/{id}/recompile, DELETE /api/cvs/{id}.
 """
+import json
 from uuid import uuid4
 from unittest.mock import patch
 import pytest
@@ -21,6 +22,22 @@ COMPILABLE_LATEX = "\\documentclass{article}\\begin{document}x\\end{document}"
 def client():
     from app.main import app
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def ensure_adapted_content_json_column(settings_with_token):
+    """Ensure generated_cvs has adapted_content_json column (for existing DBs created before this field)."""
+    import sqlalchemy
+    create_db_and_tables()
+    with engine.connect() as conn:
+        if engine.dialect.name == "sqlite":
+            try:
+                conn.execute(sqlalchemy.text("ALTER TABLE generated_cvs ADD COLUMN adapted_content_json TEXT"))
+                conn.commit()
+            except sqlalchemy.exc.OperationalError as e:
+                if "duplicate column name" not in str(e).lower() and "no such table" not in str(e).lower():
+                    raise
+    yield
 
 
 @pytest.fixture
@@ -73,7 +90,7 @@ def _make_template(**overrides):
 
 
 @pytest.fixture
-def sample_cvs(settings_with_token):
+def sample_cvs(settings_with_token, ensure_adapted_content_json_column):
     """Create 1 Job, 1 Template, 2 GeneratedCVs (one TechCorp, one OtherCo for filter tests)."""
     create_db_and_tables()
     with Session(engine) as session:
@@ -87,7 +104,8 @@ def sample_cvs(settings_with_token):
         session.refresh(job1)
         session.refresh(job2)
         session.refresh(template)
-        cv1 = GeneratedCV(job_id=job1.id, template_id=template.id, latex_content=COMPILABLE_LATEX)
+        adapted_json = json.dumps({"summary": "Test summary", "experience_adapted": [], "projects_adapted": [], "skills_adapted": None})
+        cv1 = GeneratedCV(job_id=job1.id, template_id=template.id, latex_content=COMPILABLE_LATEX, adapted_content_json=adapted_json)
         cv2 = GeneratedCV(job_id=job2.id, template_id=template.id, latex_content=COMPILABLE_LATEX)
         session.add(cv1)
         session.add(cv2)
@@ -128,6 +146,7 @@ class TestGetCvsList:
             assert "job_title" in item
             assert "company" in item
             assert "created_at" in item
+            assert "location" in item
 
     def test_filter_by_company_returns_matching(self, client, auth_headers, sample_cvs):
         response = client.get("/api/cvs", params={"company": "Tech"}, headers=auth_headers)
@@ -175,6 +194,58 @@ class TestGetCvById:
         assert data["job_title"] == expected_title
         assert data["company"] == expected_company
         assert "created_at" in data
+
+
+class TestGetCvAdapted:
+    """GET /api/cvs/{id}/adapted."""
+
+    def test_without_token_returns_401(self, client, sample_cvs):
+        cv_id = sample_cvs["cv1"].id
+        response = client.get(f"/api/cvs/{cv_id}/adapted")
+        assert response.status_code == 401
+
+    def test_nonexistent_id_returns_404(self, client, auth_headers):
+        response = client.get(f"/api/cvs/{uuid4()}/adapted", headers=auth_headers)
+        assert response.status_code == 404
+
+    def test_returns_404_when_adapted_content_null(self, client, auth_headers, sample_cvs):
+        cv2 = sample_cvs["cv2"]
+        response = client.get(f"/api/cvs/{cv2.id}/adapted", headers=auth_headers)
+        assert response.status_code == 404
+
+    def test_returns_200_and_json_when_adapted_content_set(self, client, auth_headers, sample_cvs):
+        cv1 = sample_cvs["cv1"]
+        response = client.get(f"/api/cvs/{cv1.id}/adapted", headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["summary"] == "Test summary"
+        assert data["experience_adapted"] == []
+        assert data["projects_adapted"] == []
+        assert "skills_adapted" in data
+
+
+class TestPatchCvAdapted:
+    """PATCH /api/cvs/{id}/adapted."""
+
+    def test_without_token_returns_401(self, client, sample_cvs):
+        cv_id = sample_cvs["cv1"].id
+        response = client.patch(f"/api/cvs/{cv_id}/adapted", json={"summary": "x", "experience_adapted": [], "projects_adapted": [], "skills_adapted": None})
+        assert response.status_code == 401
+
+    def test_nonexistent_id_returns_404(self, client, auth_headers):
+        body = {"summary": "x", "experience_adapted": [], "projects_adapted": [], "skills_adapted": None}
+        response = client.patch(f"/api/cvs/{uuid4()}/adapted", json=body, headers=auth_headers)
+        assert response.status_code == 404
+
+    def test_valid_body_updates_and_returns_200(self, client, auth_headers, sample_cvs):
+        cv1 = sample_cvs["cv1"]
+        body = {"summary": "Updated summary", "experience_adapted": [], "projects_adapted": [], "skills_adapted": {"languages": ["Python"]}}
+        with patch("app.main.render_jinja_template", return_value=COMPILABLE_LATEX):
+            response = client.patch(f"/api/cvs/{cv1.id}/adapted", json=body, headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["summary"] == "Updated summary"
+        assert data["skills_adapted"] == {"languages": ["Python"]}
 
 
 class TestPostCvRecompile:

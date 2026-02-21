@@ -21,7 +21,8 @@ class GeneratedCV(SQLModel, table=True):
     latex_content: str = Field(description="LaTeX code snapshot (immutable)")
     template_id: UUID = Field(foreign_key="templates.id", description="FK → Templates used")
     notes: Optional[str] = Field(default=None, description="User notes (optional)")
-    
+    adapted_content_json: Optional[str] = Field(default=None, description="AI-adapted content JSON (summary, experience_adapted, etc.)")
+
     # Timestamps (implicit per PRD note)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

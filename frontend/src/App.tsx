@@ -4,6 +4,8 @@ import Layout from "./Layout"
 import Dashboard from "./pages/Dashboard"
 import Templates from "./pages/Templates"
 import History from "./pages/History"
+import GeneratedCvs from "./pages/GeneratedCvs"
+import EditGeneratedCv from "./pages/EditGeneratedCv"
 import Profile from "./pages/Profile"
 import EditorPage from "./pages/EditorPage"
 import Login from "./pages/Login"
@@ -23,6 +25,8 @@ function App() {
               <Route path="templates" element={<Templates />} />
               <Route path="editor" element={<EditorPage />} />
               <Route path="history" element={<History />} />
+              <Route path="generated-cvs" element={<GeneratedCvs />} />
+              <Route path="generated-cvs/:id/edit" element={<EditGeneratedCv />} />
               <Route path="profile" element={<Profile />} />
             </Route>
           </Route>

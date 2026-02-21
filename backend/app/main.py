@@ -2,6 +2,7 @@
 CronOpus FastAPI Application
 Based on PRD V1.4 - Backend FastAPI
 """
+import json
 from contextlib import asynccontextmanager
 from datetime import date, datetime, time, timezone
 from jinja2 import TemplateError
@@ -338,13 +339,14 @@ async def post_template(
 
 
 def _cv_list_item(cv: GeneratedCV, job: Job) -> dict:
-    """Build list item for GET /api/cvs (id, job_id, job_title, company, source, created_at)."""
+    """Build list item for GET /api/cvs (id, job_id, job_title, company, source, location, created_at)."""
     return {
         "id": cv.id,
         "job_id": cv.job_id,
         "job_title": job.title,
         "company": job.company,
         "source": job.source,
+        "location": job.location,
         "created_at": cv.created_at,
     }
 
@@ -392,6 +394,57 @@ async def recompile_cv(
         return Response(content=pdf_bytes, media_type="application/pdf")
     except CompilationError as e:
         raise HTTPException(status_code=422, detail=e.log)
+
+
+@app.get("/api/cvs/{cv_id}/adapted")
+async def get_cv_adapted(
+    cv_id: UUID,
+    session: Session = Depends(get_session),
+    _: str = Depends(get_current_token),
+):
+    """Get adapted content JSON for a generated CV. Returns 404 if not available (legacy CV)."""
+    cv = session.get(GeneratedCV, cv_id)
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV no encontrado")
+    if cv.adapted_content_json is None:
+        raise HTTPException(status_code=404, detail="Contenido adaptado no disponible")
+    try:
+        body = json.loads(cv.adapted_content_json)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Contenido adaptado inválido")
+    return body
+
+
+@app.patch("/api/cvs/{cv_id}/adapted")
+async def patch_cv_adapted(
+    cv_id: UUID,
+    body: AdaptedContent,
+    session: Session = Depends(get_session),
+    _: str = Depends(get_current_token),
+):
+    """Update adapted content JSON, re-render LaTeX, and save. Returns 422 on validation or render error."""
+    cv = session.get(GeneratedCV, cv_id)
+    if not cv:
+        raise HTTPException(status_code=404, detail="CV no encontrado")
+    adapted = body
+    profile = session.exec(select(Profile)).first()
+    if not profile:
+        raise HTTPException(status_code=503, detail="Profile no configurado.")
+    template = session.get(Template, cv.template_id)
+    if not template:
+        raise HTTPException(status_code=404, detail="Template no encontrado")
+    profile_data = profile_to_profile_data(profile)
+    try:
+        latex = render_jinja_template(template.content, profile_data, adapted)
+    except TemplateError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    cv.latex_content = latex
+    cv.adapted_content_json = adapted.model_dump_json()
+    cv.updated_at = datetime.now(timezone.utc)
+    session.add(cv)
+    session.commit()
+    session.refresh(cv)
+    return json.loads(cv.adapted_content_json) if cv.adapted_content_json else body.model_dump()
 
 
 @app.get("/api/cvs/{cv_id}")

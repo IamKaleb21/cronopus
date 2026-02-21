@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Job, JobStatus, CvHistoryItem } from '@/types'
+import type { Job, JobStatus, CvHistoryItem, AdaptedContent } from '@/types'
 import { getStoredToken, clearStoredToken } from '@/lib/auth'
 
 /** Response from GET /api/templates/active (content + id for save). */
@@ -253,7 +253,7 @@ export const jobsApi = {
     },
 }
 
-/** CV history list and recompile. GET /api/cvs, POST /api/cvs/:id/recompile */
+/** CV history list and recompile. GET /api/cvs, POST /api/cvs/:id/recompile, GET/PATCH /api/cvs/:id/adapted */
 export const cvsApi = {
     getList: async (params?: { company?: string; from?: string; to?: string }): Promise<CvHistoryItem[]> => {
         const requestParams: Record<string, string> = {}
@@ -261,6 +261,14 @@ export const cvsApi = {
         if (params?.from) requestParams.from = params.from
         if (params?.to) requestParams.to = params.to
         const { data } = await apiClient.get<CvHistoryItem[]>('/api/cvs', { params: requestParams })
+        return data
+    },
+    getAdapted: async (cvId: string): Promise<AdaptedContent> => {
+        const { data } = await apiClient.get<AdaptedContent>(`/api/cvs/${cvId}/adapted`)
+        return data
+    },
+    updateAdapted: async (cvId: string, body: AdaptedContent): Promise<AdaptedContent> => {
+        const { data } = await apiClient.patch<AdaptedContent>(`/api/cvs/${cvId}/adapted`, body)
         return data
     },
     recompile: async (id: string): Promise<Blob> => {

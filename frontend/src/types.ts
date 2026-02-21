@@ -27,6 +27,25 @@ export interface CvHistoryItem {
     job_title: string
     company: string
     source: 'PRACTICAS_PE' | 'COMPUTRABAJO' | 'MANUAL'
+    location?: string
     created_at: string
     latex_content?: string
+}
+
+/** AI-adapted content for a CV (edit payload). Backend: GET/PATCH /api/cvs/:id/adapted */
+export interface ExperienceAdaptedItem {
+    experience_id: string
+    bullets: string[]
+}
+
+export interface ProjectAdaptedItem {
+    project_id: string
+    bullets: string[]
+}
+
+export interface AdaptedContent {
+    summary: string
+    experience_adapted: ExperienceAdaptedItem[]
+    projects_adapted: ProjectAdaptedItem[]
+    skills_adapted: Record<string, string[]> | null
 }
