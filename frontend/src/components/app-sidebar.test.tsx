@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter, useSearchParams } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -77,50 +76,32 @@ beforeEach(() => {
     })
 })
 
-describe('AppSidebar filters', () => {
-    it('shows real counts from jobs for status filters', () => {
+describe('AppSidebar', () => {
+    it('renders navigation: Dashboard, Plantillas, Historial', () => {
+        renderSidebar('/')
+        expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: /plantillas/i })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: /historial/i })).toBeInTheDocument()
+    })
+
+    it('shows job count badge on Dashboard link when on dashboard', () => {
         const jobs: Job[] = [
-            { ...MOCK_JOB, id: '1', status: 'NEW' },
-            { ...MOCK_JOB, id: '2', status: 'NEW' },
-            { ...MOCK_JOB, id: '3', status: 'SAVED' },
-            { ...MOCK_JOB, id: '4', status: 'SAVED' },
-            { ...MOCK_JOB, id: '5', status: 'SAVED' },
-            { ...MOCK_JOB, id: '6', status: 'DISCARDED' },
+            { ...MOCK_JOB, id: '1' },
+            { ...MOCK_JOB, id: '2' },
         ]
         renderSidebar('/', jobs)
-
-        const nuevasBtn = screen.getByRole('button', { name: /nuevas/i })
-        const guardadasBtn = screen.getByRole('button', { name: /guardadas/i })
-        const descartadasBtn = screen.getByRole('button', { name: /descartadas/i })
-        expect(nuevasBtn).toHaveTextContent('2')
-        expect(guardadasBtn).toHaveTextContent('3')
-        expect(descartadasBtn).toHaveTextContent('1')
+        const dashboardLink = screen.getByRole('link', { name: /dashboard/i })
+        expect(dashboardLink).toHaveTextContent('2')
     })
 
-    it('includes Descartadas in status filters', () => {
+    it('renders Scrapers activos and Cerrar sesión in footer', () => {
         renderSidebar('/')
-        expect(screen.getByText('Descartadas')).toBeInTheDocument()
+        expect(screen.getByText(/scrapers activos/i)).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /cerrar sesión/i })).toBeInTheDocument()
     })
 
-    it('clicking Guardadas updates URL with status=SAVED', async () => {
-        const user = userEvent.setup()
+    it('renders CronOpus logo in header', () => {
         renderSidebar('/')
-        const guardadas = screen.getByRole('button', { name: /guardadas/i })
-        await user.click(guardadas)
-        expect(screen.getByTestId('search')).toHaveTextContent('status=SAVED')
-    })
-
-    it('clicking CompuTrabajo source updates URL with source=COMPUTRABAJO', async () => {
-        const user = userEvent.setup()
-        renderSidebar('/')
-        const ct = screen.getByRole('button', { name: /computrabajo/i })
-        await user.click(ct)
-        expect(screen.getByTestId('search')).toHaveTextContent('source=COMPUTRABAJO')
-    })
-
-    it('active status filter has data-active when URL has matching status', () => {
-        renderSidebar('/?status=SAVED')
-        const guardadas = screen.getByRole('button', { name: /guardadas/i })
-        expect(guardadas).toHaveAttribute('data-active', 'true')
+        expect(screen.getByText('CronOpus')).toBeInTheDocument()
     })
 })

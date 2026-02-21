@@ -109,33 +109,23 @@ describe('Dashboard Pagination', () => {
         expect(screen.queryByText('Job 0')).not.toBeInTheDocument()
     })
 
-    it('resets to page 1 when switching tabs', async () => {
-        const user = userEvent.setup()
-        const manyJobs = Array.from({ length: 20 }).map((_, i) => ({
-            ...MOCK_JOB_TEMPLATE,
-            id: String(i),
-            title: `Job ${i}`,
-            // Mixed statuses
-            status: i % 2 === 0 ? 'NEW' : 'SAVED'
-        })) as Job[]
+    it('filters by location when ?location= is in URL', () => {
+        const jobsWithLocations: Job[] = [
+            { ...MOCK_JOB_TEMPLATE, id: '1', title: 'Job Lima 1', location: 'Lima' },
+            { ...MOCK_JOB_TEMPLATE, id: '2', title: 'Job Lima 2', location: 'Lima' },
+            { ...MOCK_JOB_TEMPLATE, id: '3', title: 'Job Remoto', location: 'Remoto' },
+        ]
+        renderDashboard({ initialJobs: jobsWithLocations }, '/?location=Lima')
+        expect(screen.getByText('Job Lima 1')).toBeInTheDocument()
+        expect(screen.getByText('Job Lima 2')).toBeInTheDocument()
+        expect(screen.queryByText('Job Remoto')).not.toBeInTheDocument()
+    })
 
-        renderDashboard({ initialJobs: manyJobs, itemsPerPage: 5 })
-
-        // On ALL tab (default), page 1.
-        expect(screen.getByText('Job 0')).toBeInTheDocument()
-
-        // Go to page 2 (Use Next button)
-        const nextButton = screen.getByRole('link', { name: /next/i })
-        await user.click(nextButton)
-        expect(screen.getByText('Job 5')).toBeInTheDocument()
-
-        // Switch to SAVED tab
-        const savedTab = screen.getByRole('tab', { name: /guardadas/i })
-        await user.click(savedTab)
-
-        // Should be on page 1 of SAVED tab.
-        // First SAVED job is Job 1.
-        expect(screen.getByText('Job 1')).toBeInTheDocument()
+    it('has Estado, Ubicación and Fuente filter dropdowns', () => {
+        renderDashboard({ initialJobs: [] })
+        expect(screen.getByRole('combobox', { name: /estado/i })).toBeInTheDocument()
+        expect(screen.getByRole('combobox', { name: /ubicación/i })).toBeInTheDocument()
+        expect(screen.getByRole('combobox', { name: /fuente/i })).toBeInTheDocument()
     })
 
     it('updates job status when "Mark as Applied" is clicked', async () => {
@@ -250,20 +240,18 @@ describe('Dashboard URL filters', () => {
         expect(screen.queryByText('C')).not.toBeInTheDocument()
     })
 
-    it('tab click updates URL with status param', async () => {
-        const user = userEvent.setup()
+    it('Estado dropdown shows Guardadas when URL has status=SAVED', () => {
         const jobs: Job[] = [{ ...MOCK_JOB_TEMPLATE, id: '1', title: 'Job', status: 'SAVED' }]
-        renderDashboard({ initialJobs: jobs })
-        const guardadasTab = screen.getByRole('tab', { name: /guardadas/i })
-        await user.click(guardadasTab)
-        expect(screen.getByTestId('search')).toHaveTextContent('status=SAVED')
+        renderDashboard({ initialJobs: jobs }, '/?status=SAVED')
+        const estadoCombobox = screen.getByRole('combobox', { name: /estado/i })
+        expect(estadoCombobox).toHaveTextContent('Guardadas')
     })
 
-    it('includes tabs for Aplicadas, Vencidas, Descartadas', () => {
-        renderDashboard({ initialJobs: [] })
-        expect(screen.getByRole('tab', { name: /aplicadas/i })).toBeInTheDocument()
-        expect(screen.getByRole('tab', { name: /vencidas/i })).toBeInTheDocument()
-        expect(screen.getByRole('tab', { name: /descartadas/i })).toBeInTheDocument()
+    it('shows Ofertas Recientes count and Agregar trabajo button', () => {
+        renderDashboard({ initialJobs: [MOCK_JOB_TEMPLATE] })
+        const heading = screen.getByRole('heading', { name: /Ofertas Recientes/ })
+        expect(heading).toHaveTextContent(/\(1\)/)
+        expect(screen.getByRole('button', { name: /agregar trabajo/i })).toBeInTheDocument()
     })
 
     it('opens JobDetailModal when Ver Detalle is clicked', async () => {
