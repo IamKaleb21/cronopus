@@ -15,19 +15,23 @@ function TestHarness({ initialEntry = '/' }: { initialEntry?: string }) {
 }
 
 function FilterConsumer() {
-    const { status, source, setStatus, setSource, clearFilters } = useJobFilters()
-    const location = useLocation()
+    const { status, source, location, setStatus, setSource, setLocation, clearFilters } = useJobFilters()
+    const locationNav = useLocation()
 
     return (
         <div>
             <span data-testid="status">{status ?? 'null'}</span>
             <span data-testid="source">{source ?? 'null'}</span>
-            <span data-testid="search">{location.search}</span>
+            <span data-testid="location">{location ?? 'null'}</span>
+            <span data-testid="search">{locationNav.search}</span>
             <button onClick={() => setStatus('SAVED')} data-testid="set-status-saved">Set SAVED</button>
             <button onClick={() => setStatus(null)} data-testid="set-status-null">Clear status</button>
             <button onClick={() => setSource('COMPUTRABAJO')} data-testid="set-source-ct">Set COMPUTRABAJO</button>
             <button onClick={() => setSource('MANUAL')} data-testid="set-source-manual">Set MANUAL</button>
             <button onClick={() => setSource(null)} data-testid="set-source-null">Clear source</button>
+            <button onClick={() => setLocation('Lima')} data-testid="set-location-lima">Set Lima</button>
+            <button onClick={() => setLocation(null)} data-testid="set-location-null">Clear location</button>
+            <button onClick={() => setLocation('Remoto')} data-testid="set-location-remoto">Set Remoto</button>
             <button onClick={clearFilters} data-testid="clear-all">Clear all</button>
         </div>
     )
@@ -91,13 +95,38 @@ describe('useJobFilters', () => {
         expect(search).toContain('source=COMPUTRABAJO')
     })
 
-    it('clearFilters removes both status and source from URL', async () => {
+    it('reads location as null when URL has no params', () => {
+        render(<TestHarness initialEntry="/" />)
+        expect(screen.getByTestId('location')).toHaveTextContent('null')
+    })
+
+    it('reads location from URL when ?location=Lima', () => {
+        render(<TestHarness initialEntry="/?location=Lima" />)
+        expect(screen.getByTestId('location')).toHaveTextContent('Lima')
+    })
+
+    it('setLocation updates URL with location param', async () => {
         const user = userEvent.setup()
-        render(<TestHarness initialEntry="/?status=SAVED&source=COMPUTRABAJO" />)
+        render(<TestHarness initialEntry="/" />)
+        await user.click(screen.getByTestId('set-location-lima'))
+        expect(screen.getByTestId('search').textContent).toContain('location=Lima')
+    })
+
+    it('setLocation(null) removes location from URL', async () => {
+        const user = userEvent.setup()
+        render(<TestHarness initialEntry="/?location=Lima" />)
+        await user.click(screen.getByTestId('set-location-null'))
+        expect(screen.getByTestId('search').textContent).not.toContain('location=')
+    })
+
+    it('clearFilters removes status, source and location from URL', async () => {
+        const user = userEvent.setup()
+        render(<TestHarness initialEntry="/?status=SAVED&source=COMPUTRABAJO&location=Lima" />)
         await user.click(screen.getByTestId('clear-all'))
         const search = screen.getByTestId('search').textContent
         expect(search).not.toContain('status=')
         expect(search).not.toContain('source=')
+        expect(search).not.toContain('location=')
     })
 
     it('reads source MANUAL from URL', () => {
