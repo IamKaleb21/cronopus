@@ -4,7 +4,13 @@ import { JobCard } from "@/components/JobCard"
 import { AddJobModal } from "@/components/AddJobModal"
 import { GenerateCvModal } from "@/components/GenerateCvModal"
 import { JobDetailModal } from "@/components/JobDetailModal"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Sparkles, Bookmark, FileCheck, Send, Loader2, AlertCircle, Plus } from "lucide-react"
@@ -19,6 +25,33 @@ import {
 } from "@/components/ui/pagination"
 import { useJobs, useUpdateJobStatus } from "@/hooks/useJobs"
 import { useJobFilters } from "@/hooks/useJobFilters"
+import { getDepartmentFromLocation } from "@/lib/departmentFromLocation"
+import type { JobStatus } from "@/types"
+
+const STATUS_OPTIONS: { value: string; label: string }[] = [
+    { value: "ALL", label: "Todas" },
+    { value: "NEW", label: "Nuevas" },
+    { value: "SAVED", label: "Guardadas" },
+    { value: "GENERATED", label: "Generadas" },
+    { value: "APPLIED", label: "Aplicadas" },
+    { value: "EXPIRED", label: "Vencidas" },
+    { value: "DISCARDED", label: "Descartadas" },
+]
+
+const SOURCE_OPTIONS: { value: string; label: string }[] = [
+    { value: "all", label: "Todas las fuentes" },
+    { value: "PRACTICAS_PE", label: "Practicas.pe" },
+    { value: "COMPUTRABAJO", label: "CompuTrabajo" },
+    { value: "MANUAL", label: "Manual" },
+]
+
+const DEPARTMENT_OPTIONS: { value: string; label: string }[] = [
+    { value: "all", label: "Todas" },
+    { value: "Lima", label: "Lima" },
+    { value: "Trujillo", label: "Trujillo" },
+    { value: "Remoto", label: "Remoto" },
+    { value: "Otros", label: "Otros" },
+]
 
 interface DashboardProps {
     initialJobs?: Job[]
@@ -39,13 +72,18 @@ export default function Dashboard({ initialJobs, itemsPerPage = 8 }: DashboardPr
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
     const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false)
 
-    const { status, source, setStatus } = useJobFilters()
+    const { status, source, location, setStatus, setSource, setLocation } = useJobFilters()
 
     // Use local or API data
     const jobs = isLocalMode ? localJobs : (apiJobs ?? [])
 
-    // Tab value for Tabs component: null -> "ALL"
-    const currentTab = status ?? "ALL"
+    const locationCount = (loc: string | null) =>
+        loc === null || loc === "all"
+            ? jobs.length
+            : jobs.filter((j) => getDepartmentFromLocation(j.location) === loc).length
+    const locationOptions = DEPARTMENT_OPTIONS.filter(
+        (opt) => opt.value === "all" || locationCount(opt.value) > 0
+    )
 
     // Loading state (API mode only)
     if (!isLocalMode && isLoading) {
@@ -93,7 +131,10 @@ export default function Dashboard({ initialJobs, itemsPerPage = 8 }: DashboardPr
 
     // Filter & Pagination Logic (status + source combined)
     const filteredJobs = jobs.filter(
-        (j) => (status === null || j.status === status) && (source === null || j.source === source)
+        (j) =>
+            (status === null || j.status === status) &&
+            (source === null || j.source === source) &&
+            (location === null || getDepartmentFromLocation(j.location) === location)
     )
     const totalPages = Math.ceil(filteredJobs.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
@@ -119,11 +160,6 @@ export default function Dashboard({ initialJobs, itemsPerPage = 8 }: DashboardPr
         }
         return result
     })()
-
-    const handleTabChange = (value: string) => {
-        setStatus(value === "ALL" ? null : (value as Job["status"]))
-        setCurrentPage(1)
-    }
 
     const handleGenerate = (job: Job) => {
         setSelectedJob(job)
@@ -212,12 +248,12 @@ export default function Dashboard({ initialJobs, itemsPerPage = 8 }: DashboardPr
                 </div>
 
                 {/* Filter & Grid */}
-                <Tabs value={currentTab} onValueChange={handleTabChange} className="w-full">
-                    <div className="flex items-center justify-between mb-6">
+                <div className="w-full">
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                         <h2 className="text-xl font-semibold flex items-center gap-2">
                             Ofertas Recientes <span className="text-muted-foreground font-normal text-sm">({filteredJobs.length})</span>
                         </h2>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -227,19 +263,64 @@ export default function Dashboard({ initialJobs, itemsPerPage = 8 }: DashboardPr
                                 <Plus className="h-4 w-4 mr-1.5" />
                                 Agregar trabajo
                             </Button>
-                            <TabsList className="bg-secondary/50 border border-white/5 h-10 p-1 flex-wrap">
-                            <TabsTrigger value="ALL" className="text-xs px-3">Todas</TabsTrigger>
-                            <TabsTrigger value="NEW" className="text-xs px-3 data-[state=active]:bg-status-new/10 data-[state=active]:text-status-new">Nuevas</TabsTrigger>
-                            <TabsTrigger value="SAVED" className="text-xs px-3 data-[state=active]:bg-status-saved/10 data-[state=active]:text-status-saved">Guardadas</TabsTrigger>
-                            <TabsTrigger value="GENERATED" className="text-xs px-3 data-[state=active]:bg-status-generated/10 data-[state=active]:text-status-generated">Generadas</TabsTrigger>
-                            <TabsTrigger value="APPLIED" className="text-xs px-3 data-[state=active]:bg-status-applied/10 data-[state=active]:text-status-applied">Aplicadas</TabsTrigger>
-                            <TabsTrigger value="EXPIRED" className="text-xs px-3 data-[state=active]:bg-status-expired/10 data-[state=active]:text-status-expired">Vencidas</TabsTrigger>
-                            <TabsTrigger value="DISCARDED" className="text-xs px-3 data-[state=active]:bg-status-discarded/10 data-[state=active]:text-status-discarded">Descartadas</TabsTrigger>
-                        </TabsList>
+                            <Select
+                                value={status ?? "ALL"}
+                                onValueChange={(v) => {
+                                    setStatus(v === "ALL" ? null : (v as JobStatus))
+                                    setCurrentPage(1)
+                                }}
+                            >
+                                <SelectTrigger className="w-[140px] bg-secondary/50 border-border h-9" aria-label="Estado">
+                                    <SelectValue placeholder="Estado" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {STATUS_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select
+                                value={location ?? "all"}
+                                onValueChange={(v) => {
+                                    setLocation(v === "all" ? null : v)
+                                    setCurrentPage(1)
+                                }}
+                            >
+                                <SelectTrigger className="w-[130px] bg-secondary/50 border-border h-9" aria-label="Ubicación">
+                                    <SelectValue placeholder="Ubicación" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {locationOptions.map((opt) => (
+                                        <SelectItem key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Select
+                                value={source ?? "all"}
+                                onValueChange={(v) => {
+                                    setSource(v === "all" ? null : (v as "PRACTICAS_PE" | "COMPUTRABAJO" | "MANUAL"))
+                                    setCurrentPage(1)
+                                }}
+                            >
+                                <SelectTrigger className="w-[160px] bg-secondary/50 border-border h-9" aria-label="Fuente">
+                                    <SelectValue placeholder="Fuente" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {SOURCE_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
-                    <TabsContent value={currentTab} className="mt-0 space-y-8">
+                    <div className="mt-0 space-y-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {paginatedJobs.map(job => (
                                 <JobCard
@@ -310,8 +391,8 @@ export default function Dashboard({ initialJobs, itemsPerPage = 8 }: DashboardPr
                                 </Pagination>
                             </div>
                         )}
-                    </TabsContent>
-                </Tabs>
+                    </div>
+                </div>
             </div>
 
             <AddJobModal
