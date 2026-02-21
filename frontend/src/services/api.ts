@@ -8,6 +8,75 @@ export interface TemplateActive {
     id: string
 }
 
+/** Profile JSON (same shape as docs/profile.json). Used by GET/PATCH /api/profile. */
+export interface ProfileContactLinks {
+    linkedin?: string
+    github?: string
+    website?: string
+}
+export interface ProfileContact {
+    phone: string
+    email: string
+    location: string
+    links?: ProfileContactLinks
+}
+export interface ProfileLanguageSpoken {
+    name: string
+    level: string
+    note?: string
+}
+export interface ProfileSkills {
+    languages?: string[]
+    frontend?: string[]
+    backend_db?: string[]
+    mobile?: string[]
+    data_ml?: string[]
+    infra_tools?: string[]
+    libraries?: string[]
+    languages_spoken?: ProfileLanguageSpoken[]
+}
+export interface ProfileExperienceItem {
+    id: string
+    role: string
+    company: string
+    location: string
+    from: string
+    to: string
+    bullets: string[]
+}
+export interface ProfileProjectItem {
+    id: string
+    name: string
+    stack: string[]
+    from: string
+    to: string
+    bullets: string[]
+}
+export interface ProfileEducationItem {
+    institution: string
+    location: string
+    degree: string
+    from: string
+    to: string
+}
+export interface ProfileCertificationItem {
+    name: string
+    issuer: string
+    description: string
+}
+export interface ProfileJson {
+    id?: string
+    full_name: string
+    title: string
+    contact: ProfileContact
+    summary: string
+    skills: ProfileSkills
+    experience: ProfileExperienceItem[]
+    projects: ProfileProjectItem[]
+    education: ProfileEducationItem[]
+    certifications: ProfileCertificationItem[]
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 const apiClient = axios.create({
@@ -30,6 +99,34 @@ apiClient.interceptors.response.use(
         return Promise.reject(err)
     }
 )
+
+export const profileApi = {
+    get: async (): Promise<ProfileJson> => {
+        try {
+            const { data } = await apiClient.get<ProfileJson>('/api/profile')
+            return data
+        } catch (err: unknown) {
+            const res = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
+            if (res?.status === 503) throw new Error(res?.data?.detail ?? 'Perfil no configurado. Ejecuta seed_profile.')
+            if (res?.status === 422) throw new Error(res?.data?.detail ?? 'Datos inválidos.')
+            throw err
+        }
+    },
+    update: async (body: ProfileJson): Promise<ProfileJson> => {
+        try {
+            const { data } = await apiClient.patch<ProfileJson>('/api/profile', body)
+            return data
+        } catch (err: unknown) {
+            const res = (err as { response?: { status?: number; data?: { detail?: string | unknown } } })?.response
+            if (res?.status === 503) throw new Error(res?.data?.detail ?? 'Perfil no configurado. Ejecuta seed_profile.')
+            if (res?.status === 422) {
+                const detail = res?.data?.detail
+                throw new Error(typeof detail === 'string' ? detail : 'Datos inválidos.')
+            }
+            throw err
+        }
+    },
+}
 
 export const authApi = {
     login: async (password: string): Promise<{ token: string }> => {
