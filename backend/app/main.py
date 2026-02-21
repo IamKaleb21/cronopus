@@ -22,7 +22,7 @@ from app.models.job import Job, JobStatus, JobSource
 from app.models.profile import Profile
 from app.models.template import Template
 from app.schemas.adapted_content import AdaptedContent
-from app.schemas.profile_data import profile_to_profile_data
+from app.schemas.profile_data import profile_to_profile_data, ProfileData
 from app.services.jinja_renderer import render_jinja_template
 from app.services.latex_compiler import compile_latex_to_pdf, CompilationError
 from app.services.latex_sanitizer import sanitize_latex, repair_tabular_ampersands
@@ -135,6 +135,43 @@ async def auth_login(body: LoginBody):
 async def auth_verify(_: str = Depends(get_current_token)):
     """Verify Bearer token. Task 6.4."""
     return {"valid": True}
+
+
+@app.get("/api/profile")
+async def get_profile(
+    session: Session = Depends(get_session),
+    _: str = Depends(get_current_token),
+):
+    """Return the single profile (Profile.data). 503 if not seeded."""
+    profile = session.exec(select(Profile)).first()
+    if not profile:
+        raise HTTPException(status_code=503, detail="Profile no configurado. Ejecuta seed_profile.")
+    return profile.data
+
+
+@app.patch("/api/profile")
+async def patch_profile(
+    body: dict,
+    session: Session = Depends(get_session),
+    _: str = Depends(get_current_token),
+):
+    """Update the single profile. Validates body with ProfileData. 503 if no profile, 422 if invalid."""
+    profile = session.exec(select(Profile)).first()
+    if not profile:
+        raise HTTPException(status_code=503, detail="Profile no configurado. Ejecuta seed_profile.")
+    try:
+        validated = ProfileData.model_validate(body)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    new_data = validated.model_dump(by_alias=True)
+    if "id" in profile.data:
+        new_data["id"] = profile.data["id"]
+    profile.data = new_data
+    profile.updated_at = datetime.now(timezone.utc)
+    session.add(profile)
+    session.commit()
+    session.refresh(profile)
+    return profile.data
 
 
 @app.post("/api/jobs", status_code=201)
