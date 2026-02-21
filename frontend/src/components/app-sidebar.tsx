@@ -14,9 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import { clearStoredToken } from "@/lib/auth"
-import { useJobFilters } from "@/hooks/useJobFilters"
 import { useJobs } from "@/hooks/useJobs"
-import type { JobStatus } from "@/types"
 
 // Menu items.
 const items = [
@@ -25,56 +23,11 @@ const items = [
     { title: "Historial", url: "/history", icon: History },
 ]
 
-// Status filters: statusKey maps to JobStatus; null = Todas
-const STATUS_FILTERS: { label: string; color: string; statusKey: JobStatus | null }[] = [
-    { label: "Todas", color: "var(--text-muted)", statusKey: null },
-    { label: "Nuevas", color: "var(--status-new)", statusKey: "NEW" },
-    { label: "Guardadas", color: "var(--status-saved)", statusKey: "SAVED" },
-    { label: "Generadas", color: "var(--status-generated)", statusKey: "GENERATED" },
-    { label: "Aplicadas", color: "var(--status-applied)", statusKey: "APPLIED" },
-    { label: "Vencidas", color: "var(--status-expired)", statusKey: "EXPIRED" },
-    { label: "Descartadas", color: "var(--status-discarded)", statusKey: "DISCARDED" },
-]
-
-// Source filters: sourceId maps to source enum; null = Todas las fuentes
-const SOURCE_FILTERS: { label: string; id: "PRACTICAS_PE" | "COMPUTRABAJO" | null; short: string; color: string }[] = [
-    { label: "Todas las fuentes", id: null, short: "★", color: "from-slate-500 to-slate-400" },
-    { label: "Practicas.pe", id: "PRACTICAS_PE", short: "P", color: "from-violet-500 to-indigo-500" },
-    { label: "CompuTrabajo", id: "COMPUTRABAJO", short: "CT", color: "from-pink-500 to-orange-400" },
-]
-
 export function AppSidebar() {
     const location = useLocation()
     const navigate = useNavigate()
-    const { status, source, setStatus, setSource } = useJobFilters()
     const isOnDashboard = location.pathname === "/"
     const { data: jobs = [] } = useJobs(isOnDashboard)
-
-    const statusCount = (key: JobStatus | null) =>
-        key === null ? jobs.length : jobs.filter((j) => j.status === key).length
-    const sourceCount = (id: "PRACTICAS_PE" | "COMPUTRABAJO" | null) =>
-        id === null ? jobs.length : jobs.filter((j) => j.source === id).length
-
-    const handleStatusClick = (statusKey: JobStatus | null) => {
-        if (isOnDashboard) {
-            setStatus(statusKey)
-        } else {
-            const params = new URLSearchParams()
-            if (statusKey) params.set("status", statusKey)
-            if (source) params.set("source", source)
-            navigate("/?" + params.toString())
-        }
-    }
-    const handleSourceClick = (sourceId: "PRACTICAS_PE" | "COMPUTRABAJO" | null) => {
-        if (isOnDashboard) {
-            setSource(sourceId)
-        } else {
-            const params = new URLSearchParams()
-            if (status) params.set("status", status)
-            if (sourceId) params.set("source", sourceId)
-            navigate("/?" + params.toString())
-        }
-    }
 
     const handleLogout = () => {
         clearStoredToken()
@@ -132,79 +85,6 @@ export function AppSidebar() {
                                 )
                             })}
                         </SidebarMenu>
-                    </SidebarGroupContent>
-                </SidebarGroup>
-
-                <SidebarGroup className="mt-2">
-                    <SidebarGroupLabel className="px-6 text-[0.7rem] font-semibold tracking-[0.1em] text-muted-foreground uppercase mb-3 group-data-[collapsible=icon]:hidden">
-                        Filtrar por Estado
-                    </SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <div className="px-4 space-y-1 group-data-[collapsible=icon]:px-2">
-                            {STATUS_FILTERS.map((filter) => {
-                                const count = statusCount(filter.statusKey)
-                                const isActive = status === filter.statusKey
-                                return (
-                                    <button
-                                        key={filter.label}
-                                        type="button"
-                                        data-active={isActive}
-                                        aria-pressed={isActive ? "true" : "false"}
-                                        onClick={() => handleStatusClick(filter.statusKey)}
-                                        className={`
-                                            w-full flex items-center gap-3 px-3 py-2.5 text-[0.85rem] transition-all duration-150 rounded-xl group cursor-pointer
-                                            group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0
-                                            ${isActive ? "bg-white/10 text-foreground" : "text-secondary-foreground hover:bg-white/5 hover:translate-x-1"}
-                                        `}
-                                    >
-                                        <span
-                                            className="w-2 h-2 shrink-0 rounded-full shadow-[0_0_8px_currentColor]"
-                                            style={{ backgroundColor: filter.color, color: filter.color }}
-                                        />
-                                        <span className="truncate group-data-[collapsible=icon]:hidden">{filter.label}</span>
-                                        <span className="ml-auto text-[0.8rem] text-muted-foreground group-hover:text-foreground group-data-[collapsible=icon]:hidden">
-                                            {count}
-                                        </span>
-                                    </button>
-                                )
-                            })}
-                        </div>
-                    </SidebarGroupContent>
-                </SidebarGroup>
-
-                <SidebarGroup className="mt-2">
-                    <SidebarGroupLabel className="px-6 text-[0.7rem] font-semibold tracking-[0.1em] text-muted-foreground uppercase mb-3 group-data-[collapsible=icon]:hidden">
-                        Fuentes
-                    </SidebarGroupLabel>
-                    <SidebarGroupContent>
-                        <div className="px-4 space-y-1 group-data-[collapsible=icon]:px-2">
-                            {SOURCE_FILTERS.map((filter) => {
-                                const count = sourceCount(filter.id)
-                                const isActive = source === filter.id
-                                return (
-                                    <button
-                                        key={filter.label}
-                                        type="button"
-                                        data-active={isActive}
-                                        aria-pressed={isActive ? "true" : "false"}
-                                        onClick={() => handleSourceClick(filter.id)}
-                                        className={`
-                                            w-full flex items-center gap-3 px-3 py-2.5 text-[0.85rem] transition-all duration-150 rounded-xl group cursor-pointer
-                                            group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0
-                                            ${isActive ? "bg-white/10 text-foreground" : "text-secondary-foreground hover:bg-white/5 hover:translate-x-1"}
-                                        `}
-                                    >
-                                        <div className={`flex items-center justify-center w-5 h-5 shrink-0 rounded-md text-[0.6rem] font-bold text-white shadow-sm bg-gradient-to-br ${filter.color}`}>
-                                            {filter.short}
-                                        </div>
-                                        <span className="truncate group-data-[collapsible=icon]:hidden">{filter.label}</span>
-                                        <span className="ml-auto text-[0.8rem] text-muted-foreground group-hover:text-foreground group-data-[collapsible=icon]:hidden">
-                                            {count}
-                                        </span>
-                                    </button>
-                                )
-                            })}
-                        </div>
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
