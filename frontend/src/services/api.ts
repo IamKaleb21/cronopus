@@ -77,6 +77,11 @@ export interface ProfileJson {
     certifications: ProfileCertificationItem[]
 }
 
+/** Normalize API error detail to a string for Error(). Safe for detail of type unknown. */
+function apiDetailMessage(detail: unknown, fallback: string): string {
+    return typeof detail === 'string' ? detail : fallback
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 const apiClient = axios.create({
@@ -106,9 +111,9 @@ export const profileApi = {
             const { data } = await apiClient.get<ProfileJson>('/api/profile')
             return data
         } catch (err: unknown) {
-            const res = (err as { response?: { status?: number; data?: { detail?: string } } })?.response
-            if (res?.status === 503) throw new Error(res?.data?.detail ?? 'Perfil no configurado. Ejecuta seed_profile.')
-            if (res?.status === 422) throw new Error(res?.data?.detail ?? 'Datos inválidos.')
+            const res = (err as { response?: { status?: number; data?: { detail?: unknown } } })?.response
+            if (res?.status === 503) throw new Error(apiDetailMessage(res?.data?.detail, 'Perfil no configurado. Ejecuta seed_profile.'))
+            if (res?.status === 422) throw new Error(apiDetailMessage(res?.data?.detail, 'Datos inválidos.'))
             throw err
         }
     },
@@ -117,12 +122,9 @@ export const profileApi = {
             const { data } = await apiClient.patch<ProfileJson>('/api/profile', body)
             return data
         } catch (err: unknown) {
-            const res = (err as { response?: { status?: number; data?: { detail?: string | unknown } } })?.response
-            if (res?.status === 503) throw new Error(res?.data?.detail ?? 'Perfil no configurado. Ejecuta seed_profile.')
-            if (res?.status === 422) {
-                const detail = res?.data?.detail
-                throw new Error(typeof detail === 'string' ? detail : 'Datos inválidos.')
-            }
+            const res = (err as { response?: { status?: number; data?: { detail?: unknown } } })?.response
+            if (res?.status === 503) throw new Error(apiDetailMessage(res?.data?.detail, 'Perfil no configurado. Ejecuta seed_profile.'))
+            if (res?.status === 422) throw new Error(apiDetailMessage(res?.data?.detail, 'Datos inválidos.'))
             throw err
         }
     },
