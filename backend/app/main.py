@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from sqlmodel import Session, select
+from sqlmodel import Session, select, or_
 
 from app.config import get_settings
 from app.database import create_db_and_tables, get_session
@@ -356,13 +356,18 @@ async def list_cvs(
     session: Session = Depends(get_session),
     _: str = Depends(get_current_token),
     company: Optional[str] = None,
+    title: Optional[str] = Query(None),
     from_date: Optional[date] = Query(None, alias="from"),
     to_date: Optional[date] = Query(None, alias="to"),
 ):
     """List generated CVs with optional filters. Task 6.3."""
     statement = select(GeneratedCV, Job).where(GeneratedCV.job_id == Job.id)
     if company and company.strip():
-        statement = statement.where(Job.company.ilike(f"%{company.strip()}%"))
+        company_term = f"%{company.strip()}%"
+        statement = statement.where(or_(Job.company.ilike(company_term), Job.title.ilike(company_term)))
+    if title and title.strip():
+        title_term = f"%{title.strip()}%"
+        statement = statement.where(or_(Job.company.ilike(title_term), Job.title.ilike(title_term)))
     if from_date is not None:
         from_dt = datetime.combine(from_date, time.min).replace(tzinfo=timezone.utc)
         statement = statement.where(GeneratedCV.created_at >= from_dt)

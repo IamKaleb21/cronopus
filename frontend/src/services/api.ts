@@ -255,9 +255,10 @@ export const jobsApi = {
 
 /** CV history list and recompile. GET /api/cvs, POST /api/cvs/:id/recompile, GET/PATCH /api/cvs/:id/adapted */
 export const cvsApi = {
-    getList: async (params?: { company?: string; from?: string; to?: string }): Promise<CvHistoryItem[]> => {
+    getList: async (params?: { company?: string; title?: string; from?: string; to?: string }): Promise<CvHistoryItem[]> => {
         const requestParams: Record<string, string> = {}
         if (params?.company?.trim()) requestParams.company = params.company.trim()
+        if (params?.title?.trim()) requestParams.title = params.title.trim()
         if (params?.from) requestParams.from = params.from
         if (params?.to) requestParams.to = params.to
         const { data } = await apiClient.get<CvHistoryItem[]>('/api/cvs', { params: requestParams })

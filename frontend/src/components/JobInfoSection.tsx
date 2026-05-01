@@ -12,7 +12,7 @@ export function JobInfoSection({ job }: JobInfoSectionProps) {
     const useParsed = parsed !== null && parsed.sections.length > 0
 
     return (
-        <div className="p-4 bg-secondary/30 rounded-xl border border-border">
+        <div className="p-4 bg-card/30 rounded-xl border border-border">
             <div className="flex items-start justify-between mb-2">
                 <h3 className="font-semibold text-lg">{job.title}</h3>
                 <Badge variant="outline" className="text-xs">
