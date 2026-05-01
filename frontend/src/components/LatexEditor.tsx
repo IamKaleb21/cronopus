@@ -122,7 +122,7 @@ export function LatexEditor({
     return (
         <div className="flex flex-col h-full">
             {/* Panel Header */}
-            <div className="flex items-center justify-between px-4 py-2.5 bg-secondary/50 border-b border-border">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-surface-container-high border-b border-border">
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                     <span className="w-2 h-2 rounded-full bg-status-generated" />
                     <span>Editor LaTeX</span>

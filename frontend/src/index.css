@@ -42,38 +42,52 @@
   --color-popover: var(--bg-secondary);
   --color-popover-foreground: var(--text-primary);
 
-  --color-primary: var(--accent-primary);
-  --color-primary-foreground: #ffffff;
+  --color-primary: #ddb7ff;
+  --color-primary-foreground: #490080;
 
-  --color-secondary: var(--bg-tertiary);
-  --color-secondary-foreground: var(--text-secondary);
+  --color-secondary: #ffafd3;
+  --color-secondary-foreground: #620040;
 
-  --color-muted: var(--bg-tertiary);
-  --color-muted-foreground: var(--text-muted);
+  --color-tertiary: #62dcad;
+  --color-tertiary-foreground: #003827;
 
-  --color-accent: var(--bg-card-hover);
-  --color-accent-foreground: var(--text-primary);
+  --color-outline: #988d9f;
+  --color-outline-variant: #4d4354;
 
-  --color-destructive: var(--status-discarded);
-  --color-destructive-foreground: var(--bg-primary);
+  --color-on-surface: #dae2fd;
+  --color-on-surface-variant: #cfc2d6;
 
-  --color-border: var(--border-subtle);
-  --color-input: var(--bg-tertiary);
-  --color-ring: var(--accent-primary);
+  --color-primary-fixed-dim: #ddb7ff;
+  --color-on-primary-fixed: #2c0051;
+  --color-on-primary-fixed-variant: #6900b3;
 
-  --color-sidebar: var(--bg-secondary);
-  --color-sidebar-foreground: var(--text-secondary);
-  --color-sidebar-primary: var(--accent-primary);
-  --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: var(--bg-card-hover);
-  --color-sidebar-accent-foreground: var(--text-primary);
-  --color-sidebar-border: var(--border-subtle);
-  --color-sidebar-ring: var(--accent-glow);
+  --color-surface-tint: #ddb7ff;
+  --color-surface: #0b1326;
+  --color-surface-bright: #31394d;
+  --color-surface-container-lowest: #060e20;
+  --color-surface-container-low: #131b2e;
+  --color-surface-container: #171f33;
+  --color-surface-container-high: #222a3d;
+  --color-surface-container-highest: #2d3449;
+
+  --color-border: var(--border-light);
+  --color-border-secondary: var(--border-subtle);
+
+  --sidebar-background: var(--bg-secondary);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--accent-primary);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--bg-tertiary);
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: var(--border-light);
+  --sidebar-ring: var(--accent-primary);
+  --sidebar-ring-offset: var(--bg-secondary);
+  --sidebar-ring-offset-background: var(--bg-secondary);
 }
 
 :root {
-  /* Colors - Lavender Nights Dark Theme */
-  --bg-primary: #0d0a1a;
+  /* Colors - Lavender Nights Dark Theme (synced with @theme inline) */
+  --bg-primary: #0b1326;
   --bg-secondary: #1a1528;
   --bg-tertiary: #251e38;
   --bg-card: rgba(255, 255, 255, 0.03);
@@ -110,6 +124,53 @@
   --radius-xl: 24px;
   /* Shadcn radius variable mapping */
   --radius: var(--radius-lg);
+
+  /* Lavender Nights - Stitch Design System Colors */
+  --color-background: #0b1326;
+  --color-on-background: #dae2fd;
+  --color-surface: #0b1326;
+  --color-surface-dim: #0b1326;
+  --color-surface-bright: #31394d;
+  --color-surface-container-lowest: #060e20;
+  --color-surface-container-low: #131b2e;
+  --color-surface-container: #171f33;
+  --color-surface-container-high: #222a3d;
+  --color-surface-container-highest: #2d3449;
+  --color-on-surface: #dae2fd;
+  --color-on-surface-variant: #cfc2d6;
+  --color-surface-variant: #2d3449;
+  --color-outline: #988d9f;
+  --color-outline-variant: #4d4354;
+  --color-surface-tint: #ddb7ff;
+  --color-primary: #ddb7ff;
+  --color-on-primary: #490080;
+  --color-primary-container: #b76dff;
+  --color-on-primary-container: #400071;
+  --color-inverse-primary: #842bd2;
+  --color-secondary: #ffafd3;
+  --color-on-secondary: #620040;
+  --color-secondary-container: #85145a;
+  --color-on-secondary-container: #ff93c8;
+  --color-tertiary: #62dcad;
+  --color-on-tertiary: #003827;
+  --color-tertiary-container: #18a479;
+  --color-on-tertiary-container: #003121;
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  --color-primary-fixed: #f0dbff;
+  --color-primary-fixed-dim: #ddb7ff;
+  --color-on-primary-fixed: #2c0051;
+  --color-on-primary-fixed-variant: #6900b3;
+  --color-secondary-fixed: #ffd8e7;
+  --color-secondary-fixed-dim: #ffafd3;
+  --color-on-secondary-fixed: #3d0026;
+  --color-on-secondary-fixed-variant: #85145a;
+  --color-tertiary-fixed: #80f9c8;
+  --color-tertiary-fixed-dim: #62dcad;
+  --color-on-tertiary-fixed: #002115;
+  --color-on-tertiary-fixed-variant: #00513a;
 }
 
 .dark {
@@ -118,7 +179,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border-subtle);
   }
 
   body {
@@ -161,5 +222,13 @@
 
   .shadow-glow-card {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .glow-card {
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.15);
+  }
+
+  .glow-card:hover {
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.25);
   }
 }

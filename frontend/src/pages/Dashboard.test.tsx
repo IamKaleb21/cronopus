@@ -67,7 +67,7 @@ beforeEach(() => {
 describe('Dashboard Pagination', () => {
     it('renders the dashboard title', () => {
         renderDashboard({ initialJobs: [] })
-        expect(screen.getByText('Dashboard')).toBeInTheDocument()
+        expect(screen.getByText('Panel de control')).toBeInTheDocument()
     })
 
     it('renders correct number of items per page', () => {

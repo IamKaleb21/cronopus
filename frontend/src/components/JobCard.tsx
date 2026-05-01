@@ -1,126 +1,104 @@
 import type { Job } from "@/types"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Building2, Wallet, ExternalLink, Wand2 } from "lucide-react"
+import { ExternalLink, Wand2, MapPin, Building2 } from "lucide-react"
 
 interface JobCardProps {
     job: Job
     onGenerate?: (job: Job) => void
     onMarkApplied?: (job: Job) => void
     onViewDetail?: (job: Job) => void
+    onOpenUrl?: (job: Job) => void
 }
 
-const statusColors: Record<string, string> = {
-    NEW: "bg-pink-500/10 text-pink-500 hover:bg-pink-500/20 border-pink-500/20",
-    SAVED: "bg-violet-500/10 text-violet-500 hover:bg-violet-500/20 border-violet-500/20",
-    GENERATED: "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20",
-    APPLIED: "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border-orange-500/20",
-    EXPIRED: "bg-gray-500/10 text-[var(--status-expired)] hover:bg-gray-500/20 border-gray-500/20",
-    DISCARDED: "bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20",
+const statusColors: Record<string, { bg: string; text: string }> = {
+    NEW: { bg: "bg-pink-500/10", text: "text-pink-400" },
+    SAVED: { bg: "bg-primary/10", text: "text-primary" },
+    GENERATED: { bg: "bg-tertiary/10", text: "text-tertiary" },
+    APPLIED: { bg: "bg-orange-400/10", text: "text-orange-400" },
+    EXPIRED: { bg: "bg-gray-500/10", text: "text-gray-400" },
+    DISCARDED: { bg: "bg-red-500/10", text: "text-red-500" },
 }
 
-export function JobCard({ job, onGenerate, onMarkApplied, onViewDetail }: JobCardProps) {
+const sourceLabels: Record<string, string> = {
+    PRACTICAS_PE: "Practicas.pe",
+    COMPUTRABAJO: "CompuTrabajo",
+    MANUAL: "Manual",
+}
+
+export function JobCard({ job, onGenerate, onMarkApplied, onViewDetail, onOpenUrl }: JobCardProps) {
+    const statusStyle = statusColors[job.status] || statusColors.NEW
+    const sourceLabel = sourceLabels[job.source] || job.source
+
+    const getInitials = (name: string) =>
+        name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+
+    const getDateLabel = () => {
+        if (job.created_at) return `Agregado: ${new Date(job.created_at).toLocaleDateString("es-ES", { month: "short", day: "numeric", year: "numeric" })}`
+        return ""
+    }
+
     return (
-        <Card className="group relative overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-glow-card hover:bg-card-hover bg-card border-border backdrop-blur-md rounded-[24px] p-[1.65rem]">
-            {/* Top Gradient Border Effect */}
-            <div className="absolute top-0 left-0 right-0 h-[4px] bg-accent-gradient opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
+        <div className="bg-[rgba(15,23,42,0.6)] backdrop-blur-xl border border-white/10 rounded-[24px] p-6 glow-card flex flex-col gap-4 group relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] hover:shadow-glow-card" style={{ boxShadow: "0 4px 20px rgba(168, 85, 247, 0.15)" }}>
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
 
-            <div className="flex justify-between items-start mb-4">
-                {/* Source Logo */}
-                <div className="flex items-center gap-2">
-                    <div className={`
-                        flex items-center justify-center w-[34px] h-[34px] rounded-xl text-[0.75rem] font-bold transition-transform duration-300 group-hover:scale-110 shadow-sm
-                        ${job.source === 'PRACTICAS_PE' ? 'bg-gradient-to-br from-violet-500 to-indigo-500 text-white' : ''}
-                        ${job.source === 'COMPUTRABAJO' ? 'bg-gradient-to-br from-pink-500 to-orange-400 text-white' : ''}
-                        ${!['PRACTICAS_PE', 'COMPUTRABAJO'].includes(job.source) ? 'bg-secondary text-muted-foreground' : ''}
-                    `}>
-                        {job.source.substring(0, 2)}
+            <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-white/10 overflow-hidden">
+                        <span className="text-xs font-bold text-on-surface">{getInitials(job.company)}</span>
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-[1rem] leading-[1.3] text-on-surface mb-0.5 line-clamp-1">{job.title}</h3>
+                        <div className="flex items-center gap-2 text-[0.85rem] text-outline">
+                            <Building2 className="h-3.5 w-3.5" />
+                            <span>{job.company}</span>
+                            <span>•</span>
+                            <MapPin className="h-3.5 w-3.5" />
+                            <span className="line-clamp-1">{job.location}</span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Status Badge */}
-                <Badge variant="outline" className={`
-                    border-0 px-[0.85rem] py-[0.35rem] rounded-[24px] text-[0.7rem] uppercase font-bold tracking-wider
-                    ${statusColors[job.status] || "bg-secondary text-muted-foreground"}
-                `}>
+            <div className="flex flex-wrap gap-2">
+                <span className={`px-3 py-1 rounded-full font-label-md text-[0.7rem] border ${statusStyle.bg} ${statusStyle.text} ${statusStyle.text.replace("text-", "border-")}/20`}>
                     {job.status}
-                </Badge>
-            </div>
-
-            <div className="mb-4">
-                <h3 className="font-semibold text-[1.1rem] leading-[1.3] mb-1.5 text-foreground">
-                    {job.title}
-                </h3>
-                <div className="flex items-center gap-2 text-[0.95rem] font-medium text-accent-secondary">
-                    <Building2 className="h-4 w-4" />
-                    <span>{job.company}</span>
-                </div>
-            </div>
-
-            <div className="flex flex-wrap gap-4 text-muted-foreground text-[0.85rem] mb-4">
-                <div className="flex items-center gap-1.5">
-                    <MapPin className="h-3.5 w-3.5" />
-                    <span>{job.location}</span>
-                </div>
+                </span>
+                <span className="px-3 py-1 bg-surface-container-high text-outline rounded-full font-label-md text-[0.7rem] border border-white/5">
+                    {sourceLabel}
+                </span>
                 {job.salary && (
-                    <div className="flex items-center gap-1.5 text-status-generated">
-                        <Wallet className="h-3.5 w-3.5" />
-                        <span>{job.salary}</span>
-                    </div>
+                    <span className="px-3 py-1 bg-surface-container-high text-outline rounded-full font-label-md text-[0.7rem] border border-white/5">
+                        {job.salary}
+                    </span>
                 )}
             </div>
 
-            <p className="text-text-secondary line-clamp-2 text-[0.85rem] leading-[1.6] mb-5">
-                {job.description}
-            </p>
+            {job.description && (
+                <p className="text-text-secondary text-[0.8rem] leading-[1.5] line-clamp-2">{job.description}</p>
+            )}
 
-            {/* Tags if available - simplistic implementation based on description or existing data if we had it */}
-            {/* For now skipping tags as they aren't in the base Job interface clearly, or adding static for demo if needed, but aiming for accuracy to interface */}
-
-            <div className="flex flex-col gap-3 mt-auto">
-                <div className="flex gap-3">
-                    {job.status === 'SAVED' ? (
-                        <Button
-                            className="flex-1 relative overflow-hidden text-[0.9rem] font-semibold h-auto py-2.5 bg-accent-gradient text-white shadow-[0_4px_15px_rgba(139,92,246,0.3)] hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(139,92,246,0.4)] hover:shadow-glow-primary active:scale-95 transition-all duration-200 border-none group/btn"
-                            onClick={() => onGenerate?.(job)}
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
-                            <Wand2 className="mr-2 h-4 w-4 relative z-10" />
-                            <span className="relative z-10">Generar CV</span>
-                        </Button>
-                    ) : (
-                        <Button
-                            variant="ghost"
-                            className="flex-1 bg-secondary text-muted-foreground border border-white/10 hover:bg-card-hover hover:text-foreground hover:border-accent/40 active:scale-95 transition-all duration-200 text-[0.8rem] font-semibold h-auto py-2.5"
-                            asChild
-                        >
-                            <a href={job.url} target="_blank" rel="noreferrer">
-                                <ExternalLink className="mr-2 h-4 w-4" />
-                                Ver Oferta
-                            </a>
+            <div className="mt-auto pt-4 border-t border-white/5 flex justify-between items-center">
+                <span className="font-code text-[0.7rem] text-outline/60">{getDateLabel()}</span>
+                <div className="flex items-center gap-1">
+                    {job.status === "SAVED" && (
+                        <Button size="sm" className="h-8 px-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[0.75rem] font-semibold shadow-[0_0_10px_rgba(168,85,247,0.3)] hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] border-0" onClick={() => onGenerate?.(job)}>
+                            <Wand2 className="h-3.5 w-3.5 mr-1" />
+                            Generar
                         </Button>
                     )}
-                    <Button
-                        variant="secondary"
-                        className="flex-1 bg-secondary text-muted-foreground border border-white/10 hover:bg-card-hover hover:text-foreground hover:border-accent/40 active:scale-95 transition-all duration-200 text-[0.8rem] font-semibold h-auto py-2.5"
-                        onClick={() => onViewDetail?.(job)}
-                    >
+                    {job.status !== "SAVED" && job.url && (
+                        <Button variant="ghost" size="sm" className="h-8 px-2 text-outline hover:text-on-surface hover:bg-surface-container transition-colors" onClick={() => onOpenUrl?.(job)}>
+                            <ExternalLink className="h-3.5 w-3.5" />
+                        </Button>
+                    )}
+                    {job.status !== "APPLIED" && onMarkApplied && (
+                        <Button variant="ghost" size="sm" className="h-8 px-2 text-outline hover:text-on-surface hover:bg-surface-container transition-colors" onClick={() => onMarkApplied(job)}>
+                            <span className="text-[0.75rem]">Marcar como postulado</span>
+                        </Button>
+                    )}
+                    <Button variant="ghost" size="sm" className="h-8 px-2 text-outline hover:text-on-surface hover:bg-surface-container transition-colors" onClick={() => onViewDetail?.(job)}>
                         Ver Detalle
                     </Button>
                 </div>
-
-                {job.status !== 'APPLIED' && (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full text-xs border-dashed border-white/20 text-muted-foreground hover:text-status-applied hover:border-status-applied/50 hover:bg-status-applied/5"
-                        onClick={() => onMarkApplied?.(job)}
-                    >
-                        Marcar como Postulado
-                    </Button>
-                )}
             </div>
-        </Card>
+        </div>
     )
 }

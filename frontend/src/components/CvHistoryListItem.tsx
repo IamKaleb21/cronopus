@@ -1,8 +1,7 @@
 import type { CvHistoryItem } from '@/types'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Building2, Calendar, FileOutput, Loader2 } from 'lucide-react'
+import { FileOutput, Loader2, Pencil } from 'lucide-react'
 import { TableCell, TableRow } from '@/components/ui/table'
+import { useNavigate } from 'react-router-dom'
 
 interface CvHistoryListItemProps {
     item: CvHistoryItem
@@ -10,81 +9,71 @@ interface CvHistoryListItemProps {
     isRecompiling?: boolean
 }
 
-function formatDate(iso: string) {
-    const d = new Date(iso)
-    return d.toLocaleDateString('es-PE', { 
-        day: '2-digit', 
-        month: 'short', 
-        year: 'numeric', 
-        hour: '2-digit', 
-        minute: '2-digit' 
-    })
+const sourceLabels: Record<CvHistoryItem['source'], string> = {
+    PRACTICAS_PE: 'Practicas.pe',
+    COMPUTRABAJO: 'CompuTrabajo',
+    MANUAL: 'Manual',
 }
 
-function getSourceBadge(source: CvHistoryItem['source']) {
-    const sourceLabels: Record<CvHistoryItem['source'], string> = {
-        PRACTICAS_PE: 'Practicas.pe',
-        COMPUTRABAJO: 'CompuTrabajo',
-        MANUAL: 'Manual',
-    }
-    
-    const sourceColors: Record<CvHistoryItem['source'], string> = {
-        PRACTICAS_PE: 'bg-gradient-to-br from-violet-500 to-indigo-500 text-white',
-        COMPUTRABAJO: 'bg-gradient-to-br from-pink-500 to-orange-400 text-white',
-        MANUAL: 'bg-gradient-to-br from-slate-500 to-slate-600 text-white',
-    }
-    
-    return (
-        <Badge 
-            variant="outline" 
-            className={`${sourceColors[source]} border-0 px-3 py-1 text-xs font-semibold`}
-        >
-            {sourceLabels[source]}
-        </Badge>
-    )
+const sourceStyles: Record<CvHistoryItem['source'], { bg: string; text: string; border: string }> = {
+    PRACTICAS_PE: { bg: 'bg-violet-500/10', text: 'text-violet-400', border: 'border-violet-500/20' },
+    COMPUTRABAJO: { bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/20' },
+    MANUAL: { bg: 'bg-surface-container-high', text: 'text-outline', border: 'border-white/5' },
 }
 
 export function CvHistoryListItem({ item, onRecompile, isRecompiling }: CvHistoryListItemProps) {
+    const navigate = useNavigate()
+    const sourceStyle = sourceStyles[item.source]
+
+    const formatDate = (iso: string) => {
+        const d = new Date(iso)
+        return d.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        })
+    }
+
     return (
-        <TableRow className="hover:bg-muted/30 transition-colors">
-            <TableCell className="font-semibold text-foreground py-4">
+        <TableRow className="border-b border-white/5 hover:bg-purple-500/5 transition-colors group">
+            <TableCell className="font-medium text-white py-4 px-6">
                 {item.job_title}
             </TableCell>
-            <TableCell className="py-4">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                    <Building2 className="h-4 w-4 shrink-0" />
-                    <span>{item.company}</span>
+            <TableCell className="py-4 px-6 text-slate-300">
+                {item.company}
+            </TableCell>
+            <TableCell className="py-4 px-6">
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${sourceStyle.bg} ${sourceStyle.text} ${sourceStyle.border}`}>
+                    {sourceLabels[item.source]}
+                </span>
+            </TableCell>
+            <TableCell className="py-4 px-6 font-mono text-sm text-slate-400">
+                {formatDate(item.created_at)}
+            </TableCell>
+<TableCell className="py-4 px-6 text-right">
+                <div className="flex items-center justify-end gap-2">
+                    <button
+                        onClick={() => navigate(`/generated-cvs/${item.id}/edit`)}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/20 text-outline hover:text-white hover:border-white/40 hover:bg-white/5 transition-all text-sm font-medium"
+                    >
+                        <Pencil className="h-4 w-4" />
+                        Editar
+                    </button>
+                    <button
+                        onClick={() => onRecompile(item)}
+                        disabled={isRecompiling}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-purple-500/30 text-purple-400 hover:bg-purple-500/10 hover:border-purple-500/60 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isRecompiling ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <FileOutput className="h-4 w-4" />
+                        )}
+                        Ver/Recompilar
+                    </button>
                 </div>
-            </TableCell>
-            <TableCell className="py-4">
-                {getSourceBadge(item.source)}
-            </TableCell>
-            <TableCell className="py-4">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-4 w-4 shrink-0" />
-                    <span className="text-sm">{formatDate(item.created_at)}</span>
-                </div>
-            </TableCell>
-            <TableCell className="text-right py-4">
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onRecompile(item)}
-                    disabled={isRecompiling}
-                    className="min-w-[140px]"
-                >
-                    {isRecompiling ? (
-                        <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Recompilando...
-                        </>
-                    ) : (
-                        <>
-                            <FileOutput className="h-4 w-4 mr-2" />
-                            Ver / Recompilar
-                        </>
-                    )}
-                </Button>
             </TableCell>
         </TableRow>
     )

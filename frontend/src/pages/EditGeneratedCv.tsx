@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import { Loader2, AlertCircle, Save, Plus, Trash2, FileOutput } from 'lucide-react'
+import { Loader2, AlertCircle, Save, Plus, Trash2, FileOutput, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { PageHeader } from '@/components/ui/page-header'
 import { cvsApi } from '@/services/api'
 import type { AdaptedContent } from '@/types'
 
@@ -86,7 +87,10 @@ export default function EditGeneratedCv() {
     if (isLoading) {
         return (
             <div className="space-y-8 p-2">
-                <h1 className="text-3xl font-extrabold text-gradient w-fit">Editar contenido adaptado</h1>
+                <PageHeader
+                    title="Editar contenido adaptado"
+                    icon={<FileText className="h-5 w-5" />}
+                />
                 <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                     <Loader2 className="h-12 w-12 mb-4 animate-spin opacity-50" />
                     <p>Cargando...</p>
@@ -98,12 +102,15 @@ export default function EditGeneratedCv() {
     if (error || !content) {
         return (
             <div className="space-y-8 p-2">
-                <h1 className="text-3xl font-extrabold text-gradient w-fit">Editar contenido adaptado</h1>
+                <PageHeader
+                    title="Editar contenido adaptado"
+                    icon={<FileText className="h-5 w-5" />}
+                />
                 <div className="flex flex-col items-center justify-center py-16 text-destructive border border-dashed border-destructive/20 rounded-2xl bg-destructive/5">
                     <AlertCircle className="h-12 w-12 mb-4 opacity-50" />
                     <p className="text-center px-4">{error ?? 'CV no encontrado'}</p>
                     <Button variant="outline" className="mt-4" asChild>
-                        <Link to="/generated-cvs">Volver a CVs Generados</Link>
+                        <Link to="/history">Volver al historial</Link>
                     </Button>
                 </div>
             </div>
@@ -115,20 +122,23 @@ export default function EditGeneratedCv() {
 
     return (
         <div className="space-y-8 p-2 pb-24">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="sm" asChild>
-                        <Link to="/generated-cvs">← Volver a CVs Generados</Link>
+            <PageHeader
+                title="Editar contenido adaptado"
+                icon={<FileText className="h-5 w-5" />}
+                actions={
+                    <Button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="sticky top-2 z-10 bg-accent-gradient hover:opacity-90"
+                    >
+                        {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                        Guardar
                     </Button>
-                    <h1 className="text-3xl font-extrabold text-gradient w-fit">Editar contenido adaptado</h1>
-                </div>
-                <Button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="sticky top-2 z-10 bg-accent-gradient hover:opacity-90"
-                >
-                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                    Guardar
+                }
+            />
+            <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="sm" asChild>
+                    <Link to="/history">← Volver al historial</Link>
                 </Button>
             </div>
 

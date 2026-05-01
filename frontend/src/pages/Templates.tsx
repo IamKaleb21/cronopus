@@ -9,6 +9,7 @@ import {
     ResizableHandle,
 } from '@/components/ui/resizable'
 import { Save, FileCode, RotateCcw, Loader2 } from 'lucide-react'
+import { PageHeader } from '@/components/ui/page-header'
 import { useTemplate, useSaveTemplate } from '@/hooks/useTemplate'
 import { jobsApi } from '@/services/api'
 
@@ -52,7 +53,7 @@ export default function Templates() {
             const url = URL.createObjectURL(blob)
             setPdfUrl(url)
         } catch (error) {
-            console.error('Failed to compile', error)
+            console.error('Error al compilar', error)
             const message = error instanceof Error ? error.message : 'Error al compilar'
             toast.error(message)
         } finally {
@@ -78,48 +79,41 @@ export default function Templates() {
 
     return (
         <div className="flex flex-col h-[calc(100vh-64px)]">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 bg-background border-b border-border">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        <FileCode className="h-5 w-5" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold tracking-tight">Editor de Template Maestro</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Define la estructura base para todos los CVs generados. Usa variables Jinja: <code className="text-xs bg-muted px-1 rounded">profile</code> (perfil), <code className="text-xs bg-muted px-1 rounded">adapted</code> (adaptado por IA). Compilar usa los datos del perfil guardado.
-                        </p>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleReset}
-                        disabled={saveMutation.isPending || content === templateContent || !templateContent}
-                    >
-                        <RotateCcw className="h-4 w-4 mr-2" />
-                        Revertir Cambios
-                    </Button>
-                    <Button
-                        size="sm"
-                        onClick={handleSave}
-                        disabled={saveMutation.isPending || !templateId}
-                    >
-                        {saveMutation.isPending ? (
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                            <Save className="h-4 w-4 mr-2" />
-                        )}
-                        Guardar Template
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title="Editor de Template Maestro"
+                description="Define la estructura base para todos los CVs generados. Usa variables Jinja: profile (perfil) y adapted (adaptado por IA)."
+                icon={<FileCode className="h-5 w-5" />}
+                actions={
+                    <>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleReset}
+                            disabled={saveMutation.isPending || content === templateContent || !templateContent}
+                        >
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            Revertir Cambios
+                        </Button>
+                        <Button
+                            size="sm"
+                            onClick={handleSave}
+                            disabled={saveMutation.isPending || !templateId}
+                        >
+                            {saveMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Save className="h-4 w-4 mr-2" />
+                            )}
+                            Guardar Template
+                        </Button>
+                    </>
+                }
+            />
 
             {/* Editor Area */}
             <div className="flex-1 overflow-hidden">
                 <ResizablePanelGroup direction="horizontal">
-                    <ResizablePanel defaultSize={50} minSize={30} className="bg-secondary/20 p-4">
+                    <ResizablePanel defaultSize={50} minSize={30} className="bg-card/30 p-4">
                         <LatexEditor
                             value={content}
                             onChange={setContent}

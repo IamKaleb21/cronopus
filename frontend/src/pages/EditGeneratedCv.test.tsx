@@ -54,6 +54,6 @@ describe('EditGeneratedCv page', () => {
         await waitFor(() => {
             expect(screen.getByText(/no se puede editar/i)).toBeInTheDocument()
         })
-        expect(screen.getByRole('link', { name: /volver a CVs Generados/i })).toBeInTheDocument()
+        expect(screen.getByRole('link', { name: /volver al historial/i })).toBeInTheDocument()
     })
 })

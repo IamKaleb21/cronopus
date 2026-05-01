@@ -6,6 +6,7 @@ export const CVS_QUERY_KEY = 'cvs' as const
 
 export type CvFilters = {
     company?: string
+    title?: string
     from?: string
     to?: string
 }

@@ -1,35 +1,32 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import type { CvHistoryItem } from '@/types'
 import { CvHistoryListItem } from '@/components/CvHistoryListItem'
 import { RecompileResultModal } from '@/components/RecompileResultModal'
 import { useCvs, useRecompileCv, type CvFilters } from '@/hooks/useCvs'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-    Table,
-    TableBody,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table'
-import { Loader2, AlertCircle, FileStack } from 'lucide-react'
+import { Loader2, AlertCircle, Search, FileStack, Calendar, FileText } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
+import { PageHeader } from '@/components/ui/page-header'
 
 export default function History() {
-    const [companyInput, setCompanyInput] = useState('')
+    const [searchInput, setSearchInput] = useState('')
+    const [timeFilter, setTimeFilter] = useState('all')
     const [fromDate, setFromDate] = useState('')
     const [toDate, setToDate] = useState('')
     const [resultModalOpen, setResultModalOpen] = useState(false)
     const [resultPdfUrl, setResultPdfUrl] = useState<string | null>(null)
     const [resultItem, setResultItem] = useState<CvHistoryItem | null>(null)
     const [recompilingId, setRecompilingId] = useState<string | null>(null)
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 9
 
     const filters: CvFilters = useMemo(
         () => ({
-            company: companyInput.trim() || undefined,
+            company: searchInput.trim() || undefined,
             from: fromDate || undefined,
             to: toDate || undefined,
         }),
-        [companyInput, fromDate, toDate]
+        [searchInput, fromDate, toDate]
     )
     const { data: cvs = [], isLoading, isError } = useCvs(filters)
     const recompileMutation = useRecompileCv()
@@ -45,7 +42,6 @@ export default function History() {
                 setResultItem(item)
                 setResultModalOpen(true)
             } catch {
-                // Error could be shown with toast
             } finally {
                 setRecompilingId(null)
             }
@@ -62,92 +58,206 @@ export default function History() {
         setResultModalOpen(open)
     }
 
+    const filteredCvs = useMemo(() => {
+        let result = cvs
+        if (timeFilter === '30') {
+            const thirtyDaysAgo = new Date()
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+            result = result.filter(cv => new Date(cv.created_at) >= thirtyDaysAgo)
+        } else if (timeFilter === '90') {
+            const ninetyDaysAgo = new Date()
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
+            result = result.filter(cv => new Date(cv.created_at) >= ninetyDaysAgo)
+        } else if (timeFilter === 'year') {
+            const yearAgo = new Date()
+            yearAgo.setFullYear(yearAgo.getFullYear() - 1)
+            result = result.filter(cv => new Date(cv.created_at) >= yearAgo)
+        }
+        return result
+    }, [cvs, timeFilter])
+
+    const totalPages = Math.ceil(filteredCvs.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const paginatedCvs = filteredCvs.slice(startIndex, startIndex + itemsPerPage)
+
+    const maxVisiblePages = 7
+    const paginationItems: (number | "ellipsis")[] = useMemo(() => {
+        if (totalPages <= maxVisiblePages) {
+            return Array.from({ length: totalPages }, (_, i) => i + 1)
+        }
+        const pages = new Set<number>([1, totalPages])
+        for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+            if (i >= 1 && i <= totalPages) pages.add(i)
+        }
+        const sorted = [...pages].sort((a, b) => a - b)
+        const result: (number | "ellipsis")[] = []
+        let prev = 0
+        for (const p of sorted) {
+            if (prev && p - prev > 1) result.push("ellipsis")
+            result.push(p)
+            prev = p
+        }
+        return result
+    }, [totalPages, currentPage])
+
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [timeFilter, searchInput, fromDate, toDate])
+
     return (
         <div className="space-y-8 p-2">
-            <div>
-                <h1 className="text-3xl font-extrabold text-gradient w-fit">Historial</h1>
-                <p className="text-muted-foreground mt-1">CVs generados anteriormente.</p>
-            </div>
+            <PageHeader
+                title="Historial de CVs"
+                description="Revisa y recompila tus currículums vitae generados anteriormente."
+                icon={<FileText className="h-5 w-5" />}
+            />
 
-            {/* Filters */}
-            <div className="flex flex-wrap items-end gap-4 p-4 rounded-xl bg-card border border-border">
-                <div className="flex-1 min-w-[200px] space-y-2">
-                    <Label htmlFor="filter-company">Empresa</Label>
-                    <Input
-                        id="filter-company"
-                        placeholder="Filtrar por empresa"
-                        aria-label="Empresa"
-                        value={companyInput}
-                        onChange={e => setCompanyInput(e.target.value)}
-                        className="bg-secondary border-border"
+            <div className="flex flex-col sm:flex-row gap-4 items-center bg-surface-container/50 p-2 rounded-xl border border-white/5 backdrop-blur-sm">
+                <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-outline text-[18px]" />
+                    <input
+                        className="w-full border border-white/10 rounded-lg py-2 pl-9 pr-4 text-sm bg-surface-container-low text-on-surface placeholder:text-outline focus:outline-none focus:border-primary/50 transition-all h-10"
+                        placeholder="Empresa..."
+                        type="text"
+                        value={searchInput}
+                        onChange={e => setSearchInput(e.target.value)}
                     />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="filter-from">Desde</Label>
-                    <Input
-                        id="filter-from"
-                        type="date"
-                        value={fromDate}
-                        onChange={e => setFromDate(e.target.value)}
-                        className="bg-secondary border-border w-[160px]"
-                    />
+                <div className="flex gap-2 items-center">
+                    <label className="relative">
+                        <span className="sr-only">Desde</span>
+                        <input
+                            className="w-full sm:w-32 border border-white/10 rounded-lg py-2 pl-9 pr-4 text-sm bg-surface-container-low text-on-surface placeholder:text-outline focus:outline-none focus:border-primary/50 transition-all h-10"
+                            placeholder="Desde"
+                            type="date"
+                            value={fromDate}
+                            onChange={e => setFromDate(e.target.value)}
+                        />
+                    </label>
+                    <label className="relative">
+                        <span className="sr-only">Hasta</span>
+                        <input
+                            className="w-full sm:w-32 border border-white/10 rounded-lg py-2 pl-9 pr-4 text-sm bg-surface-container-low text-on-surface placeholder:text-outline focus:outline-none focus:border-primary/50 transition-all h-10"
+                            placeholder="Hasta"
+                            type="date"
+                            value={toDate}
+                            onChange={e => setToDate(e.target.value)}
+                        />
+                    </label>
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="filter-to">Hasta</Label>
-                    <Input
-                        id="filter-to"
-                        type="date"
-                        value={toDate}
-                        onChange={e => setToDate(e.target.value)}
-                        className="bg-secondary border-border w-[160px]"
-                    />
+                <div className="relative w-full sm:w-48">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-outline pointer-events-none z-10" />
+                    <Select value={timeFilter} onValueChange={setTimeFilter}>
+                        <SelectTrigger className="w-full pl-9 pr-8 bg-surface-container-low border border-white/10 text-on-surface h-10 rounded-lg text-sm" style={{ background: 'rgba(19, 27, 46, 0.8)' }}>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="30">Últimos 30 días</SelectItem>
+                            <SelectItem value="90">Últimos 90 días</SelectItem>
+                            <SelectItem value="year">Este año</SelectItem>
+                            <SelectItem value="all">Todo</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
             {isLoading && (
-                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                <div className="flex flex-col items-center justify-center py-16 text-on-surface-variant">
                     <Loader2 className="h-12 w-12 mb-4 animate-spin opacity-50" />
                     <p>Cargando historial...</p>
                 </div>
             )}
 
             {!isLoading && isError && (
-                <div className="flex flex-col items-center justify-center py-16 text-destructive border border-dashed border-destructive/20 rounded-2xl bg-destructive/5">
+                <div className="flex flex-col items-center justify-center py-16 text-error border border-dashed border-error/20 rounded-2xl bg-error-container/10">
                     <AlertCircle className="h-12 w-12 mb-4 opacity-50" />
                     <p>Error al cargar el historial. Intenta de nuevo.</p>
                 </div>
             )}
 
-            {!isLoading && !isError && cvs.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground border border-dashed border-border rounded-2xl bg-card">
+            {!isLoading && !isError && filteredCvs.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-16 text-on-surface-variant border border-dashed border-white/10 rounded-2xl bg-surface-container/30">
                     <FileStack className="h-12 w-12 mb-4 opacity-50" />
-                    <p>Aún no hay CVs generados.</p>
+                    <p>No hay CVs generados.</p>
                 </div>
             )}
 
-            {!isLoading && !isError && cvs.length > 0 && (
-                <div className="rounded-xl border border-border bg-card overflow-hidden">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="font-semibold py-4">Título del Trabajo</TableHead>
-                                <TableHead className="font-semibold py-4">Empresa</TableHead>
-                                <TableHead className="font-semibold py-4">Fuente</TableHead>
-                                <TableHead className="font-semibold py-4">Fecha de Creación</TableHead>
-                                <TableHead className="text-right font-semibold py-4">Acción</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {cvs.map(item => (
-                                <CvHistoryListItem
-                                    key={item.id}
-                                    item={item}
-                                    onRecompile={handleRecompile}
-                                    isRecompiling={recompilingId === item.id}
-                                />
-                            ))}
-                        </TableBody>
-                    </Table>
+            {!isLoading && !isError && filteredCvs.length > 0 && (
+                <div className="bg-[rgba(15,23,42,0.6)] backdrop-blur-xl border border-white/10 rounded-[24px] glow-card overflow-hidden flex flex-col">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-white/10 bg-surface-container-low/50">
+                                    <th className="py-4 px-6 text-[0.7rem] uppercase font-semibold tracking-wider text-on-surface-variant">Puesto</th>
+                                    <th className="py-4 px-6 text-[0.7rem] uppercase font-semibold tracking-wider text-on-surface-variant">Empresa</th>
+                                    <th className="py-4 px-6 text-[0.7rem] uppercase font-semibold tracking-wider text-on-surface-variant">Fuente</th>
+                                    <th className="py-4 px-6 text-[0.7rem] uppercase font-semibold tracking-wider text-on-surface-variant">Fecha</th>
+                                    <th className="py-4 px-6 text-[0.7rem] uppercase font-semibold tracking-wider text-on-surface-variant text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-[0.85rem] text-slate-300">
+                                {paginatedCvs.map(item => (
+                                    <CvHistoryListItem
+                                        key={item.id}
+                                        item={item}
+                                        onRecompile={handleRecompile}
+                                        isRecompiling={recompilingId === item.id}
+                                    />
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="p-4 border-t border-white/10 flex items-center justify-between bg-surface-container-low/30">
+                        <span className="text-sm text-slate-400">
+                            Mostrando {startIndex + 1} a {Math.min(startIndex + itemsPerPage, filteredCvs.length)} de {filteredCvs.length} resultados
+                        </span>
+                        {totalPages > 1 && (
+                            <Pagination className="justify-end">
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                if (currentPage > 1) setCurrentPage(p => p - 1)
+                                            }}
+                                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                        />
+                                    </PaginationItem>
+                                    {paginationItems.map((item, idx) =>
+                                        item === "ellipsis" ? (
+                                            <PaginationItem key={`ellipsis-${idx}`}>
+                                                <PaginationEllipsis />
+                                            </PaginationItem>
+                                        ) : (
+                                            <PaginationItem key={item}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    isActive={currentPage === item}
+                                                    onClick={(e) => {
+                                                        e.preventDefault()
+                                                        setCurrentPage(item)
+                                                    }}
+                                                >
+                                                    {item}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        )
+                                    )}
+                                    <PaginationItem>
+                                        <PaginationNext
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                if (currentPage < totalPages) setCurrentPage(p => p + 1)
+                                            }}
+                                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                        )}
+                    </div>
                 </div>
             )}
 
