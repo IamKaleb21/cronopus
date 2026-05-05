@@ -320,20 +320,34 @@ class CompuTrabajoScraper(BaseScraper):
 
         # 2. Specific Roles to Exclude
         roles_to_exclude = [
+            # Sales / Commercial (original)
             "asesor de ventas", "ejecutivo de ventas", "agente de ventas", "representante de ventas",
             "vendedor", "promotor", "impulsador", "mercaderista", "preventista",
             "supervisor de ventas", "jefe de ventas", "asesor comercial", "ejecutivo comercial",
             "gestor comercial", "asesor de credito", "asesor de negocios", "fuerza de ventas",
             "ventas de campo", "ventas campo", "ventas corporativas", "telemarketing", "ejecutivo corporativo",
+            # Transport / Logistics
             "chofer", "conductor", "motorizado", "repartidor",
-            "almacen", "almacenero", "auxiliar de almacen", "logistica", "logística", "operario", "estibador",
+            "flota", "control de flota", "vehiculo",
+            # Warehouse / Storage
+            "almac", "almacen", "almacenero", "auxiliar de almacen", "logistica", "logística", "operario", "estibador",
+            "bodega", "inventario",
+            # Banking / Finance
+            "banca", "bancario", "crédito", "cobranza", "edpyme", "microfinanzas", "afp", "eps",
+            "mibanco", "banco Ripley", "bbva",
+            # Food / Hospitality
             "mozo", "azafata", "cocinero", "chef", "barista", "mesero",
+            "restaurante", "restaurant", "bebida", "gastronom", "aliment", "comida",
+            # General Services
             "limpieza", "mantenimiento", "servicios generales", "oficios varios",
             "seguridad", "vigilante", "prevencionista",
+            # Customer Service / Admin
             "cajero", "atención al cliente", "recepcionista", "call center", "teleoperador",
             "reclutamiento", "recursos humanos", "talento humano", "psicologo", "seleccion",
-            "mecánico", "mecanico", "eléctrico", "electrico", "electrónico", "electronico", "técnico de soporte",
-            "fibra óptica", "fibra optica", "soporte técnico", "soporte tecnico",
+            "rrhh", "nóminas", "nomina", "remuneraciones", "planilla",
+            # Technical (non-IT)
+            "mecánico", "mecanico", "eléct", "electrónico", "electronico", "electr", "electrico",
+            "técnico de soporte", "fibra óptica", "fibra optica", "soporte técnico", "soporte tecnico",
             "especialista de empresas",
             # Administrative / Accounting
             "asistente administrativo", "auxiliar administrativo", "secretaria", "recepcionista", 
@@ -341,14 +355,43 @@ class CompuTrabajoScraper(BaseScraper):
             "abogado", "legal",
             # Marketing / Design (Non-Tech)
             "community manager", "diseñador gráfico", "disenador grafico", "social media", "redactor", "copywriter",
-            # Trade / Production
+            "marketing", "mkt", "seo", "sem", "google sem", "publicidad",
+            # Trade / Production / Industrial
             "operario de producción", "operario de produccion", "ayudante de producción", "ayudante de produccion",
             "tornero", "soldador", "gasfitero", "pintor", "albanil", "albañil",
+            "maquinaria", "manufactura", "producción", "planta", "industrial",
+            "metalúrgica", "metalmecánica", "textil", "matizador",
             # Health / Education
             "profesor", "docente", "tutor", "medico", "médico", "enfermero", "enfermera", "odontologo", "nutricionista", "farmaceutico",
+            "clínica", "clinica", "salud", "hospital", "médico",
+            "académico", "academico", "universidad",
             # Non-IT Engineering / Construction
             "ingeniero civil", "ingeniero industrial", "ingeniero de minas", "ingeniero agricola", "ingeniero ambiental", 
-            "arquitecto de interiores", "dibujante cad", "cadista", "topografo"
+            "arquitecto de interiores", "dibujante cad", "cadista", "topografo",
+            # Agriculture / Irrigation
+            "arándano", "riego", "irrigac", "fertil", "agricola", "agroindustrial", "agr",
+            "campo", "cultivo", "cosecha",
+            # Quality / Compliance / HSEQ
+            "calidad", "certificac", "iso", "hseq", "hse", "ssoma", "sst",
+            "cumplimiento", "sig", "sistema integrado de gestión",
+            "costos", "presupuesto",
+            # Environment
+            "ambiental", "contamin", "residuos", "sustentable", "verde",
+            # HR / Admin
+            "formador", "capacit", "blando", "staffing",
+            # Industrial Automation / Instrumentation
+            "instrumentación", "control de",
+            "estadística", "estadistica",
+            "cad cam", "cad/cam",
+            # Office / Facilities
+            "oficina técnica",
+            "instalacion", "instalaciones", "metrología",
+            "multifunción", "multifunc",
+            "ascensor", "bomba", "incendio",
+            # Telecom (non-IT)
+            "telecom",
+            # Other non-tech
+            "pulidor", "drones", "obra", "construcción",
         ]
         
         for role in roles_to_exclude:
@@ -358,7 +401,8 @@ class CompuTrabajoScraper(BaseScraper):
         # 3. Company Filtering
         companies_to_exclude = [
             "covisian perú", "covisian",
-            "transagui"
+            "transagui",
+            "mibanco",
         ]
         company_lower = company.lower()
         for bad_company in companies_to_exclude:
